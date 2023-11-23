@@ -1,9 +1,11 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const { generatedOTP } = require("../utils/otpGenerator");
 const nodemailer = require("../utils/nodemailer");
+const { JWT_SECRET_KEY } = process.env;
 
 module.exports = {
   register: async (req, res, next) => {
@@ -48,6 +50,106 @@ module.exports = {
         status: true,
         message: "Registration successful",
         data: { newUser, newUserProfile },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  login: async (req, res, next) => {
+    try {
+      let { email, password } = req.body;
+
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        return res.status(401).json({
+          status: false,
+          message: "Invalid Email or Password!",
+          data: null,
+        });
+      }
+
+      let isPasswordCorrect = await bcrypt.compare(password, user.password);
+      if (!isPasswordCorrect) {
+        return res.status(401).json({
+          status: false,
+          message: "Invalid Email or Password!",
+          data: null,
+        });
+      }
+
+      let token = jwt.sign({ id: user.id }, JWT_SECRET_KEY);
+
+      return res.status(200).json({
+        status: true,
+        message: "Login successful",
+        data: { user, token },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  verifyOtp: async (req, res, next) => {
+    try {
+      let { email, otp } = req.body;
+
+      let user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+          data: null,
+        });
+      }
+
+      if (user.otp !== otp) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid OTP",
+          data: null,
+        });
+      }
+
+      let updateUser = await prisma.user.update({
+        where: { email },
+        data: { isVerified: true },
+      });
+
+      res.status(200).json({
+        status: true,
+        message: "Activation successful",
+        data: updateUser,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  resendOtp: async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      const otp = generatedOTP();
+
+      const html = await nodemailer.getHtml("verify-otp.ejs", { email, otp });
+      nodemailer.sendEmail(email, "Email Activation", html);
+
+      const updateOtp = await prisma.user.update({
+        where: { email },
+        data: { otp },
+      });
+
+      res.status(200).json({
+        status: true,
+        message: "Resend OTP successful",
+        data: updateOtp,
       });
     } catch (err) {
       next(err);
