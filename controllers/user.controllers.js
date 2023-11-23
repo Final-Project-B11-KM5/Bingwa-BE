@@ -155,4 +155,100 @@ module.exports = {
       next(err);
     }
   },
+
+  forgetPasswordUser: async (req, res, next) => {
+    try {
+      let { email } = req.body;
+
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "Email not found",
+          data: null,
+        });
+      }
+
+      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY);
+      const html = await nodemailer.getHtml("email-password-reset.ejs", { email, token });
+      nodemailer.sendEmail(email, "Reset Password", html);
+
+      res.status(200).json({
+        status: true,
+        message: "Email sent successfully",
+        data: { email, token },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  updatePasswordUser: async (req, res, next) => {
+    try {
+      let { token } = req.query;
+      let { password, passwordConfirmation } = req.body;
+
+      if (password !== passwordConfirmation) {
+        return res.status(400).json({
+          status: false,
+          message: "Please ensure that the password and password confirmation match!",
+          data: null,
+        });
+      }
+
+      let encryptedPassword = await bcrypt.hash(password, 10);
+
+      jwt.verify(token, JWT_SECRET_KEY, async (err, decoded) => {
+        if (err) {
+          return res.status(400).json({
+            status: false,
+            message: "Bad request",
+            err: err.message,
+            data: null,
+          });
+        }
+
+        let updateUser = await prisma.user.update({
+          where: { email: decoded.email },
+          data: { password: encryptedPassword },
+        });
+
+        res.status(200).json({
+          status: true,
+          message: "Your password has been updated successfully!",
+          data: updateUser,
+        });
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  authenticateUser: async (req, res, next) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: Number(req.user.id) },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+          data: null,
+        });
+      }
+
+      return res.status(200).json({
+        status: true,
+        message: "Authentication successful",
+        data: { user },
+      });
+    } catch (err) {
+      console.error(err);
+      next(err);
+    }
+  },
 };
