@@ -17,7 +17,7 @@ module.exports = {
       });
 
       if (existingUser) {
-        return res.status(400).json({
+        return res.status(409).json({
           status: false,
           message: "Email already exists",
           data: null,
@@ -81,6 +81,14 @@ module.exports = {
         });
       }
 
+      if (!user.isVerified) {
+        return res.status(403).json({
+          status: false,
+          message: "Account not verified. Please check your email!",
+          data: null,
+        });
+      }
+
       let token = jwt.sign({ id: user.id }, JWT_SECRET_KEY);
 
       return res.status(200).json({
@@ -110,7 +118,7 @@ module.exports = {
       }
 
       if (user.otp !== otp) {
-        return res.status(400).json({
+        return res.status(401).json({
           status: false,
           message: "Invalid OTP",
           data: null,
