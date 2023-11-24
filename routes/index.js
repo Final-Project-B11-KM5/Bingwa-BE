@@ -13,5 +13,6 @@ router.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // API
 router.use("/api/v1/users", User);
 router.use("/api/v1/user-profiles", UserProfile);
+router.use("/api/v1/course", require('./course.routes'))
 
 module.exports = router;

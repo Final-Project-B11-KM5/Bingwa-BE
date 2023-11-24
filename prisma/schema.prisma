@@ -41,3 +41,29 @@ model Notification {
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
 }
+
+enum Level{
+  beginners
+  intermediate
+  advanced
+}
+
+model Course {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Int
+  rating    Int
+  difficult Level     @default(beginners)
+  description    String
+  mentor    String
+  link_group  String
+  is_premium  Boolean   @default(false)
+  category_id Int
+  category    Category  @relation(fields: [category_id], references: [id])
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  course    Course[]
+}
