@@ -31,30 +31,8 @@ module.exports = {
 
       return res.status(200).json({
         status: true,
-        message: "OK",
+        message: "Profile updated successfully",
         data: { newUserProfile },
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  authenticateUser: async (req, res, next) => {
-    try {
-      const userProfile = await prisma.userProfile.findUnique({
-        where: { userId: Number(req.user.id) },
-      });
-
-      return res.status(200).json({
-        status: true,
-        message: "OK",
-        data: {
-          first_name: userProfile.first_name,
-          last_name: userProfile.last_name,
-          email: req.user.email,
-          birth_date: userProfile.birth_date,
-          profile_picture: userProfile.profile_picture,
-        },
       });
     } catch (err) {
       next(err);

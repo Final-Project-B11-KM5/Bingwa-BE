@@ -17,7 +17,7 @@ module.exports = {
       });
 
       if (existingUser) {
-        return res.status(400).json({
+        return res.status(409).json({
           status: false,
           message: "Email already exists",
           data: null,
@@ -81,6 +81,14 @@ module.exports = {
         });
       }
 
+      if (!user.isVerified) {
+        return res.status(403).json({
+          status: false,
+          message: "Account not verified. Please check your email!",
+          data: null,
+        });
+      }
+
       let token = jwt.sign({ id: user.id }, JWT_SECRET_KEY);
 
       return res.status(200).json({
@@ -110,7 +118,7 @@ module.exports = {
       }
 
       if (user.otp !== otp) {
-        return res.status(400).json({
+        return res.status(401).json({
           status: false,
           message: "Invalid OTP",
           data: null,
@@ -173,7 +181,10 @@ module.exports = {
       }
 
       let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY);
-      const html = await nodemailer.getHtml("email-password-reset.ejs", { email, token });
+      const html = await nodemailer.getHtml("email-password-reset.ejs", {
+        email,
+        token,
+      });
       nodemailer.sendEmail(email, "Reset Password", html);
 
       res.status(200).json({
@@ -194,7 +205,8 @@ module.exports = {
       if (password !== passwordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please ensure that the password and password confirmation match!",
+          message:
+            "Please ensure that the password and password confirmation match!",
           data: null,
         });
       }
@@ -216,10 +228,18 @@ module.exports = {
           data: { password: encryptedPassword },
         });
 
+        let newNotification = await prisma.notification.create({
+          data: {
+            title: "Notifikasi",
+            message: "Password berhasil diubah!",
+            userId: updateUser.id,
+          },
+        });
+
         res.status(200).json({
           status: true,
           message: "Your password has been updated successfully!",
-          data: updateUser,
+          data: { updateUser, newNotification },
         });
       });
     } catch (err) {
