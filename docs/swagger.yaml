@@ -304,8 +304,10 @@ paths:
                       data:
                         type: object
                         properties:
-                          user:
+                          updatedUser:
                             $ref: "#/components/schemas/UserModel"
+                          newNotification:
+                            $ref: "#/components/schemas/NotificationModel"
         "400":
           description: The password and password confirmation fields must match
           content:
@@ -438,6 +440,28 @@ components:
         country:
           type: string
           example: "Canada"
+        userId:
+          type: integer
+          example: 1
+    NotificationModel:
+      title: User Profile
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Notification"
+        message:
+          type: string
+          example: "Password successfully updated!"
+        isRead:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
         userId:
           type: integer
           example: 1
