@@ -45,14 +45,14 @@ model Course {
   courseName       String
   price            Int
   rating           Int
-  difficult        String
+  level            String
   aboutCourse      String
   targetAudience   String
   learningMaterial String
-  creator          String
+  mentor           String
   isPremium        Boolean
-  linkVidio        String
-  linkForum        String
+  videoURL         String
+  forumURL         String
   duration         String
   release          DateTime   @default(now())
   categoryId       Int?
