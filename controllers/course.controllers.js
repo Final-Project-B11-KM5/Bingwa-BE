@@ -14,7 +14,7 @@ module.exports = {
       if (!isPremium && price) {
         return res.status(400).json({
           status: false,
-          message: "free class price must be 0 ",
+          message: "free class price must be 0",
           data: null,
         });
       }
@@ -53,7 +53,7 @@ module.exports = {
           ...req.body,
         },
       });
-      return res.status(201).json({
+      return res.status(200).json({
         status: true,
         message: "Update Kelas successful",
         data: editCourse,

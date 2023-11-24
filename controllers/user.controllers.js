@@ -266,7 +266,6 @@ module.exports = {
         data: { user },
       });
     } catch (err) {
-      console.error(err);
       next(err);
     }
   },
@@ -313,7 +312,6 @@ module.exports = {
         data: { updateUser, newNotification },
       });
     } catch (err) {
-      console.error(err);
       next(err);
     }
   },

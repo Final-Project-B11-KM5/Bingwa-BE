@@ -3,8 +3,8 @@ const { createCourse, editCourse, deleteCourse, detailCourse, showAllCourse, get
 const Auth = require("../middlewares/authentication");
 const checkRole = require("../middlewares/checkRole");
 
-router.get("/", Auth, checkRole(["admin"]), showAllCourse);
 router.post("/", Auth, checkRole(["admin"]), createCourse);
+router.get("/", Auth, checkRole(["admin"]), showAllCourse);
 router.get("/:idCourse", Auth, checkRole(["admin"]), detailCourse);
 router.put("/:idCourse", Auth, checkRole(["admin"]), editCourse);
 router.delete("/:idCourse", Auth, checkRole(["admin"]), deleteCourse);
