@@ -224,10 +224,14 @@ module.exports = {
           data: { password: encryptedPassword },
         });
 
+        let newNotification = await prisma.notification.create({
+          data: { title: "Notifikasi", message: "Password berhasil diubah!", userId: updateUser.id },
+        });
+
         res.status(200).json({
           status: true,
           message: "Your password has been updated successfully!",
-          data: updateUser,
+          data: { updateUser, newNotification },
         });
       });
     } catch (err) {
