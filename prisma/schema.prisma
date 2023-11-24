@@ -30,3 +30,38 @@ model UserProfile {
   userId         Int     @unique
   user           User    @relation(fields: [userId], references: [id])
 }
+
+model Category {
+  id           Int      @id @default(autoincrement())
+  categoryName String   @unique
+  course       Course[]
+}
+
+model Course {
+  id               Int        @id @default(autoincrement())
+  courseName       String     @unique
+  price            Int
+  rating           Int
+  level            String
+  aboutCourse      String
+  targetAudience   String
+  learningMaterial String
+  creator          String
+  isPaid           Boolean
+  linkVidio        String
+  linkForum        String
+  duration         String
+  release          DateTime   @default(now())
+  Category         Category?  @relation(fields: [categoryId], references: [id])
+  categoryId       Int?
+  Promotion        Promotion? @relation(fields: [promotionId], references: [id])
+  promotionId      Int?
+}
+
+model Promotion {
+  id        Int       @id @default(autoincrement())
+  discount  Decimal
+  startDate DateTime?
+  endDate   DateTime?
+  course    Course[]
+}

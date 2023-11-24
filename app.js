@@ -17,7 +17,8 @@ app.use(router);
 app.use((req, res, next) => {
   res.status(404).json({
     status: false,
-    message: "Not Found",
+    message: "Bad Request",
+    data: null,
   });
 });
 
@@ -30,4 +31,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => console.log(`server running at http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`server running at http://localhost:${PORT}`)
+);
