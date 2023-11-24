@@ -18,6 +18,7 @@ module.exports = {
           data: null,
         });
       }
+      
       return res.status(201).json({
         status: true,
         message: "create Kelas successful",
