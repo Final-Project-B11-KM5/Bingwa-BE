@@ -17,7 +17,7 @@ router.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // API
 router.use("/api/v1/users", User);
 router.use("/api/v1/user-profiles", UserProfile);
-router.use("/api/v1/category", Category);
-router.use("/api/v1/course", Course);
+router.use("/api/v1/categories", Category);
+router.use("/api/v1/courses", Course);
 
 module.exports = router;
