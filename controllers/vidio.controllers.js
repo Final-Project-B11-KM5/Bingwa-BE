@@ -4,5 +4,7 @@ const path = require("path");
 const imagekit = require("../libs/imagekit");
 
 module.exports = {
-    
+    postVidio: async()=>{
+        
+    }
 }
