@@ -2,13 +2,13 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -42,23 +42,23 @@ model Category {
 
 model Course {
   id               Int        @id @default(autoincrement())
-  courseName       String    
+  courseName       String
   price            Int
   rating           Int
-  level            String
+  difficult        String
   aboutCourse      String
   targetAudience   String
   learningMaterial String
   creator          String
-  isPaid           Boolean
+  isPremium        Boolean
   linkVidio        String
   linkForum        String
   duration         String
   release          DateTime   @default(now())
-  Category         Category?  @relation(fields: [categoryId], references: [id])
   categoryId       Int?
-  Promotion        Promotion? @relation(fields: [promotionId], references: [id])
+  Category         Category?  @relation(fields: [categoryId], references: [id])
   promotionId      Int?
+  Promotion        Promotion? @relation(fields: [promotionId], references: [id])
 }
 
 model Promotion {
@@ -68,6 +68,7 @@ model Promotion {
   endDate   DateTime?
   course    Course[]
 }
+
 model Notification {
   id        Int      @id @default(autoincrement())
   title     String
@@ -76,30 +77,4 @@ model Notification {
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
-}
-
-enum Level{
-  beginners
-  intermediate
-  advanced
-}
-
-model Course {
-  id        Int      @id @default(autoincrement())
-  name      String
-  price     Int
-  rating    Int
-  difficult Level     @default(beginners)
-  description    String
-  mentor    String
-  link_group  String
-  is_premium  Boolean   @default(false)
-  category_id Int
-  category    Category  @relation(fields: [category_id], references: [id])
-}
-
-model Category {
-  id        Int      @id @default(autoincrement())
-  name      String
-  course    Course[]
 }
