@@ -9,6 +9,15 @@ module.exports = {
           ...req.body,
         },
       });
+      const price = req.body.price;
+      const isPremium = req.body.isPaid;
+      if (!isPremium && price) {
+        return res.status(400).json({
+          status: false,
+          message: "free class price must be 0 ",
+          data: null,
+        });
+      }
       return res.status(201).json({
         status: true,
         message: "create Kelas successful",
