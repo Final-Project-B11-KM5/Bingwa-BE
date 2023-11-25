@@ -5,7 +5,7 @@ const checkRole = require("../middlewares/checkRole");
 
 router.post("/", Auth, checkRole(["admin"]), createCourse);
 // router.get("/", Auth, checkRole(["admin"]), showAllCourse); // USER nanti gabsia lihat kelas apa aja dong sblm login
-router.get("/", showAllCourse)
+router.get("/", showAllCourse);
 router.get("/:idCourse", Auth, checkRole(["admin"]), detailCourse);
 router.put("/:idCourse", Auth, checkRole(["admin"]), editCourse);
 router.delete("/:idCourse", Auth, checkRole(["admin"]), deleteCourse);
