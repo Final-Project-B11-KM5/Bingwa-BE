@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const getPagination = require('../utils/getPaggination')
 
 module.exports = {
   createCourse: async (req, res, next) => {
@@ -84,11 +85,24 @@ module.exports = {
 
   showAllCourse: async (req, res, next) => {
     try {
-      let allCourse = await prisma.course.findMany();
+      const { limit = 10, page = 1 } = req.query;
+      console.log(limit)
+      
+      const courses = await prisma.course.findMany({
+        skip:(Number(page) - 1) * Number(limit),
+        take: Number(limit)
+      })
+
+      const {_count} = await prisma.course.aggregate({
+        _count: {id: true}
+      })
+
+      const paggination = getPagination(req, _count.id, Number(page), Number(limit))
+
       res.status(200).json({
         status: true,
         message: "Show All Kelas successful",
-        data: allCourse,
+        data: {paggination, courses},
       });
     } catch (err) {
       next(err);
