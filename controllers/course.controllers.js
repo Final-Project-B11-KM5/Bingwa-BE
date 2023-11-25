@@ -1,17 +1,12 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const getPagination = require('../utils/getPaggination')
+const getPagination = require("../utils/getPaggination");
 
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      let newCourse = await prisma.course.create({
-        data: {
-          ...req.body,
-        },
-      });
-      const price = req.body.price;
-      const isPremium = req.body.isPremium;
+      const { price, isPremium, categoryId, promotionId } = req.body;
+
       if (!isPremium && price) {
         return res.status(400).json({
           status: false,
@@ -20,10 +15,42 @@ module.exports = {
         });
       }
 
+      let category = await prisma.category.findUnique({
+        where: { id: Number(categoryId) },
+      });
+
+      if (!category) {
+        return res.status(404).json({
+          status: false,
+          message: "Category not found",
+          data: null,
+        });
+      }
+
+      if (promotionId) {
+        promotion = await prisma.promotion.findUnique({
+          where: { id: Number(promotionId) },
+        });
+
+        if (!promotion) {
+          return res.status(404).json({
+            status: false,
+            message: "Promotion not found",
+            data: null,
+          });
+        }
+      }
+
+      let newCourse = await prisma.course.create({
+        data: {
+          ...req.body,
+        },
+      });
+
       return res.status(201).json({
         status: true,
         message: "create Kelas successful",
-        data: newCourse,
+        data: { newCourse },
       });
     } catch (err) {
       console.log(err);
@@ -86,23 +113,23 @@ module.exports = {
   showAllCourse: async (req, res, next) => {
     try {
       const { limit = 10, page = 1 } = req.query;
-      console.log(limit)
-      
+      console.log(limit);
+
       const courses = await prisma.course.findMany({
-        skip:(Number(page) - 1) * Number(limit),
-        take: Number(limit)
-      })
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+      });
 
-      const {_count} = await prisma.course.aggregate({
-        _count: {id: true}
-      })
+      const { _count } = await prisma.course.aggregate({
+        _count: { id: true },
+      });
 
-      const paggination = getPagination(req, _count.id, Number(page), Number(limit))
+      const paggination = getPagination(req, _count.id, Number(page), Number(limit));
 
       res.status(200).json({
         status: true,
         message: "Show All Kelas successful",
-        data: {paggination, courses},
+        data: { paggination, courses },
       });
     } catch (err) {
       next(err);
