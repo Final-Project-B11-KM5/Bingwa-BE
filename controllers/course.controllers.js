@@ -125,7 +125,43 @@ module.exports = {
       next(err);
     }
   },
+  showVidioByCourse: async (req, res, next) => {
+    try {
+      const { idCourse } = req.params;
+      const findCourse = await prisma.course.findFirst({
+        where: {
+          id: Number(idCourse),
+        },
+      });
+      if (!findCourse) {
+        return res.status(404).json({
+          status: false,
+          message: `Course Not Found With Id ${idCourse}`,
+          data: null,
+        });
+      }
 
+      let filterVidio = await prisma.vidio.findMany({
+        where: {
+          idCourse,
+        },
+        include: {
+          Course: {
+            select: {
+              courseName: true,
+            },
+          },
+        },
+      });
+      res.status(200).json({
+        status: true,
+        message: "Show All Vidio in Course ",
+        data: filterVidio,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
   getCourse: async (req, res, next) => {
     try {
       const { search, category, page = 1, pageSize = 10 } = req.query;
@@ -133,7 +169,10 @@ module.exports = {
       let where = {};
       if (search) {
         where = {
-          OR: [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }],
+          OR: [
+            { courseName: { contains: search, mode: "insensitive" } },
+            { mentor: { contains: search, mode: "insensitive" } },
+          ],
         };
       }
 
@@ -157,7 +196,11 @@ module.exports = {
         },
       });
 
-      res.json(courses);
+      res.status(200).json({
+        status: true,
+        message: "Succes to show Course",
+        data: courses,
+      });
     } catch (error) {
       next(error);
     }
