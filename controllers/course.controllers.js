@@ -10,15 +10,15 @@ module.exports = {
         },
       });
       const price = req.body.price;
-      const isPremium = req.body.isPaid;
+      const isPremium = req.body.isPremium;
       if (!isPremium && price) {
         return res.status(400).json({
           status: false,
-          message: "free class price must be 0 ",
+          message: "free class price must be 0",
           data: null,
         });
       }
-      
+
       return res.status(201).json({
         status: true,
         message: "create Kelas successful",
@@ -29,6 +29,7 @@ module.exports = {
       next(err);
     }
   },
+
   editCourse: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
@@ -52,7 +53,7 @@ module.exports = {
           ...req.body,
         },
       });
-      return res.status(201).json({
+      return res.status(200).json({
         status: true,
         message: "Update Kelas successful",
         data: editCourse,
@@ -62,6 +63,7 @@ module.exports = {
       next(err);
     }
   },
+
   deleteCourse: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
@@ -79,6 +81,7 @@ module.exports = {
       next(err);
     }
   },
+
   showAllCourse: async (req, res, next) => {
     try {
       let allCourse = await prisma.course.findMany();
@@ -91,6 +94,7 @@ module.exports = {
       next(err);
     }
   },
+
   detailCourse: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
@@ -119,6 +123,43 @@ module.exports = {
     } catch (err) {
       console.log(err);
       next(err);
+    }
+  },
+
+  getCourse: async (req, res, next) => {
+    try {
+      const { search, category, page = 1, pageSize = 10 } = req.query;
+
+      let where = {};
+      if (search) {
+        where = {
+          OR: [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }],
+        };
+      }
+
+      if (category) {
+        const decodedCategory = decodeURIComponent(category);
+        where = {
+          ...where,
+          category: {
+            categoryName: decodedCategory,
+          },
+        };
+      }
+      const skip = (page - 1) * pageSize;
+
+      const courses = await prisma.course.findMany({
+        where,
+        take: pageSize,
+        skip,
+        include: {
+          category: true,
+        },
+      });
+
+      res.json(courses);
+    } catch (error) {
+      next(error);
     }
   },
 };

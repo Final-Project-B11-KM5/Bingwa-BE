@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -48,16 +49,17 @@ model Course {
   aboutCourse      String
   targetAudience   String
   learningMaterial String
-  creator          String
-  isPaid           Boolean
-  linkVidio        String
-  linkForum        String
+  mentor           String
+  isPremium        Boolean
+  videoURL         String
+  forumURL         String
   duration         String
   release          DateTime   @default(now())
-  Category         Category?  @relation(fields: [categoryId], references: [id])
+  vidio            Vidio[]
   categoryId       Int?
-  Promotion        Promotion? @relation(fields: [promotionId], references: [id])
+  Category         Category?  @relation(fields: [categoryId], references: [id])
   promotionId      Int?
+  Promotion        Promotion? @relation(fields: [promotionId], references: [id])
 }
 
 model Promotion {
@@ -76,4 +78,13 @@ model Notification {
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Vidio {
+  id        Int     @id @default(autoincrement())
+  vidioName String
+  link      String
+  duration  Int
+  Course    Course? @relation(fields: [courseId], references: [id])
+  courseId  Int?
 }
