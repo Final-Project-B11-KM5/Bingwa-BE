@@ -41,10 +41,10 @@ CREATE TABLE "Course" (
     "aboutCourse" TEXT NOT NULL,
     "targetAudience" TEXT NOT NULL,
     "learningMaterial" TEXT NOT NULL,
-    "creator" TEXT NOT NULL,
-    "isPaid" BOOLEAN NOT NULL,
-    "linkVidio" TEXT NOT NULL,
-    "linkForum" TEXT NOT NULL,
+    "mentor" TEXT NOT NULL,
+    "isPremium" BOOLEAN NOT NULL,
+    "videoURL" TEXT NOT NULL,
+    "forumURL" TEXT NOT NULL,
     "duration" TEXT NOT NULL,
     "release" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "categoryId" INTEGER,
@@ -75,6 +75,17 @@ CREATE TABLE "Notification" (
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Vidio" (
+    "id" SERIAL NOT NULL,
+    "vidioName" TEXT NOT NULL,
+    "link" TEXT NOT NULL,
+    "duration" INTEGER NOT NULL,
+    "courseId" INTEGER,
+
+    CONSTRAINT "Vidio_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -95,3 +106,6 @@ ALTER TABLE "Course" ADD CONSTRAINT "Course_promotionId_fkey" FOREIGN KEY ("prom
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Vidio" ADD CONSTRAINT "Vidio_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
