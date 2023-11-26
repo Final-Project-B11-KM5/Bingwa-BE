@@ -59,6 +59,7 @@ model Course {
   Category         Category?  @relation(fields: [categoryId], references: [id])
   promotionId      Int?
   Promotion        Promotion? @relation(fields: [promotionId], references: [id])
+  createdAt        DateTime   @default(now())
 }
 
 model Promotion {
