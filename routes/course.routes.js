@@ -1,5 +1,13 @@
 const router = require("express").Router();
-const { createCourse, editCourse, deleteCourse, detailCourse, showAllCourse, getCourse } = require("../controllers/course.controllers");
+const {
+  createCourse,
+  editCourse,
+  deleteCourse,
+  detailCourse,
+  showAllCourse,
+  getCourse,
+  showVidioByCourse
+} = require("../controllers/course.controllers");
 const Auth = require("../middlewares/authentication");
 const checkRole = require("../middlewares/checkRole");
 
@@ -10,4 +18,6 @@ router.put("/:idCourse", Auth, checkRole(["admin"]), editCourse);
 router.delete("/:idCourse", Auth, checkRole(["admin"]), deleteCourse);
 router.get("/course", getCourse);
 
+// display videos in the course
+router.get("/:idCourse/vidio", showVidioByCourse);
 module.exports = router;

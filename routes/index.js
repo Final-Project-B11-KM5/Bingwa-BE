@@ -7,6 +7,7 @@ const User = require("./user.routes");
 const UserProfile = require("./userProfile.routes");
 const Category = require("./category.routes");
 const Course = require("./course.routes");
+const Vidio = require("./vidio.routes");
 
 const file = fs.readFileSync("docs/swagger.yaml", "utf8");
 
@@ -19,5 +20,6 @@ router.use("/api/v1/users", User);
 router.use("/api/v1/user-profiles", UserProfile);
 router.use("/api/v1/categories", Category);
 router.use("/api/v1/courses", Course);
+router.use("/api/v1/vidio", Vidio);
 
 module.exports = router;
