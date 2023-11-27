@@ -7,8 +7,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   // directUrl = env("DIRECT_URL")
 }
 
@@ -64,9 +64,10 @@ model Course {
 }
 
 model Chapter {
-  id        Int      @id  @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
+  vidio     Vidio[]
 }
 
 model Promotion {
@@ -88,10 +89,12 @@ model Notification {
 }
 
 model Vidio {
-  id        Int     @id @default(autoincrement())
-  vidioName String
+  id        Int      @id @default(autoincrement())
+  title     String
   link      String
   duration  Int
-  Course    Course? @relation(fields: [courseId], references: [id])
+  Course    Course?  @relation(fields: [courseId], references: [id])
   courseId  Int?
+  Chapter   Chapter? @relation(fields: [chapterId], references: [id])
+  chapterId Int?
 }
