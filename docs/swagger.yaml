@@ -484,7 +484,9 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/UserModel"
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CategoryModel"
   /categories/{categoryId}:
     put:
       tags:
@@ -500,7 +502,7 @@ paths:
           required: true
           description: The ID of the category to retrieve.
       requestBody:
-        $ref: "#/components/requestBodies/CreateCategory"
+        $ref: "#/components/requestBodies/EditCategory"
       responses:
         "200":
           description: Successful operation
@@ -574,14 +576,25 @@ paths:
                   message:
                     type: string
                     example: "failed"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
     get:
       tags:
         - Courses
       operationId: get-all-courses
       summary: Get all courses
       description: Get all courses
-      security:
-        - bearerAuth: []
       responses:
         "200":
           description: Successful operation
@@ -593,65 +606,15 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CourseModel"
-  /courses/course:
-    get:
-      tags:
-        - Courses
-      operationId: get-all-courses
-      summary: Get all courses
-      description: Get all courses
-      parameters:
-        - name: search
-          in: query
-          description: search for get courses
-          required: false
-          schema:
-            type: string
-        - name: category
-          in: query
-          description: category for get courses
-          required: false
-          schema:
-            type: string
-        - name: page
-          in: query
-          description: page for get courses
-          required: false
-          schema:
-            type: string
-        - name: pageSize
-          in: query
-          description: page size for get courses
-          required: false
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Email sent successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: object
-                    properties:
-                      data:
-                        $ref: "#/components/schemas/CourseModel"
+                        type: object
+                        properties:
+                          Pagination:
+                            $ref: "#/components/schemas/Pagination"
+                          courses:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/CourseModel"
 
-        "400":
-          description: The password and password confirmation fields must match
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: "Please ensure that the password and password confirmation match!"
   /courses/{courseId}:
     put:
       tags:
@@ -774,6 +737,22 @@ components:
         message:
           type: string
           example: "success"
+    Pagination:
+      title: Pagination
+      type: object
+      properties:
+        links:
+          type: object
+          properties:
+            next:
+              type: string
+              example: "https://domain.com/users?page=3&limit=10"
+            prev:
+              type: string
+              example: "https://domain.com/users?page=1&limit=10"
+        total_items:
+          type: integer
+          example: 10
     UserModel:
       title: User
       type: object
@@ -1023,6 +1002,15 @@ components:
               categoryName:
                 type: string
                 example: "UI/UX Design"
+    EditCategory:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              categoryName:
+                type: string
+                example: "UI/UX Design"
     CreateCourse:
       content:
         application/json:
@@ -1065,15 +1053,12 @@ components:
               duration:
                 type: string
                 example: "120 Minute"
-              release:
-                type: string
-                example: "2023-11-24T01:11:59.133Z"
               categoryId:
                 type: integer
                 example: 1
               promotionId:
                 type: integer
-                example: 1
+                example: null
     EditCourse:
       content:
         application/json:
@@ -1116,15 +1101,12 @@ components:
               duration:
                 type: string
                 example: "120 Minute"
-              release:
-                type: string
-                example: "2023-11-24T01:11:59.133Z"
               categoryId:
                 type: integer
                 example: 1
               promotionId:
                 type: integer
-                example: 1
+                example: null
   securitySchemes:
     bearerAuth:
       type: http
