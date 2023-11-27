@@ -1,14 +1,15 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const getPagination = require("../utils/getPaggination");
 
 module.exports = {
   createVidio: async (req, res, next) => {
     try {
-      const { vidioName, link, duration, courseId } = req.body;
-      if (!vidioName || !link || !duration) {
+      const { title, link, duration, courseId, chapterId } = req.body;
+      if (!title || !link || !duration) {
         return res.status(400).json({
           status: false,
-          message: `vidioName ,link ,or duration must be filled`,
+          message: `title ,link ,or duration must be filled`,
           data: null,
         });
       }
@@ -26,10 +27,11 @@ module.exports = {
       }
       let createVidio = await prisma.vidio.create({
         data: {
-          vidioName,
+          title,
           link,
           duration,
           courseId,
+          chapterId,
         },
       });
       return res.status(201).json({
@@ -43,38 +45,28 @@ module.exports = {
   },
   showAllVidio: async (req, res, next) => {
     try {
-      // create Pagination
-      const { page = 1, pageSize = 10 } = req.query;
-      let pages = Number(page);
-      let pageSizes = Number(pageSize);
-      let link = {};
-      let path =
-        `${req.protocol}://${req.get("host")}` + req.baseUrl + req.path;
+      const { limit = 2, page = 1 } = req.query;
+      // Pagination
       let count = await prisma.vidio.count();
-      if (count - pageSizes * pages <= 0) {
-        link.next = "";
-        if (pages - 1 <= 0) {
-          link.prev = "";
-        } else {
-          link.prev = `${path}?page=${pages - 1}&pageSize=${pageSizes}`;
-        }
-      } else {
-        link.next = `${path}?page=${pages + 1}&pageSize=${pageSizes}`;
-        if (pages - 1 <= 0) {
-          link.prev = "";
-        } else {
-          link.prev = `${path}?page=${pages - 1}&pageSize=${pageSizes}`;
-        }
-      }
-      const skip = (pages - 1) * pageSizes;
-      // end create Pagination
+      const paggination = getPagination(
+        req,
+        count,
+        Number(page),
+        Number(limit)
+      );
+      // end Pagination
       const allVidios = await prisma.vidio.findMany({
-        take: pageSizes,
-        skip,
+        take: Number(limit),
+        skip: (Number(page) - 1) * Number(limit),
         include: {
           Course: {
             select: {
               courseName: true,
+            },
+          },
+          Chapter: {
+            select: {
+              name: true,
             },
           },
         },
@@ -83,7 +75,7 @@ module.exports = {
         status: true,
         message: "Succes Show All Vidio",
         data: allVidios,
-        link,
+        paggination,
       });
     } catch (err) {
       console.log(err);
@@ -111,6 +103,10 @@ module.exports = {
         where: {
           id: Number(idVidio),
         },
+        include: {
+          Chapter: true,
+          Course: true,
+        },
       });
       res.status(200).json({
         status: true,
@@ -118,17 +114,18 @@ module.exports = {
         data: vidio,
       });
     } catch (err) {
+      console.log(err);
       next(err);
     }
   },
   editVidio: async (req, res, next) => {
     try {
       const { idVidio } = req.params;
-      const { vidioName, link, duration, courseId } = req.body;
-      if (!vidioName || !link || !duration) {
+      const { title, link, duration, courseId } = req.body;
+      if (!title || !link || !duration) {
         return res.status(400).json({
           status: false,
-          message: `vidioName ,link ,or duration must be filled`,
+          message: `title ,link ,or duration must be filled`,
           data: null,
         });
       }
@@ -150,7 +147,7 @@ module.exports = {
           id: idVidio,
         },
         data: {
-          vidioName,
+          title,
           link,
           duration,
           courseId,
@@ -177,6 +174,57 @@ module.exports = {
         status: true,
         message: "succes to Delete Vidio",
         data: deleteVidio,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+  searchFilterVidio: async (req, res, next) => { 
+    try {
+      const { chapter, title, course } = req.query;
+      if (chapter || title || course) {
+        let filterVidio = await prisma.vidio.findMany({
+          where: {
+            OR: [
+              {
+                title: {
+                  contains: title || "a",
+                  mode: "insensitive",
+                },
+              },
+            ],
+            Chapter: {
+              OR: [
+                {
+                  name: {
+                    contains: chapter || "a", //adakah solusi lebih clean untuk query filter chapter ?
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            },
+            Course: {
+              OR: [
+                {
+                  courseName: {
+                    contains: course || "a",
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            },
+          },
+        });
+        return res.status(200).json({
+          status: true,
+          message: "Succes Filter Or Search Vidio",
+          data: filterVidio,
+        });
+      }
+      res.status(400).json({
+        status: false,
+        message: "Bad Request",
+        data: null,
       });
     } catch (err) {
       next(err);
