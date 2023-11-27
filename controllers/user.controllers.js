@@ -205,7 +205,8 @@ module.exports = {
       if (password !== passwordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please ensure that the password and password confirmation match!",
+          message:
+            "Please ensure that the password and password confirmation match!",
           data: null,
         });
       }
@@ -274,7 +275,10 @@ module.exports = {
     try {
       const { oldPassword, newPassword, newPasswordConfirmation } = req.body;
 
-      let isOldPasswordCorrect = await bcrypt.compare(oldPassword, req.user.password);
+      let isOldPasswordCorrect = await bcrypt.compare(
+        oldPassword,
+        req.user.password
+      );
       if (!isOldPasswordCorrect) {
         return res.status(401).json({
           status: false,
@@ -286,7 +290,8 @@ module.exports = {
       if (newPassword !== newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please ensure that the new password and confirmation match!",
+          message:
+            "Please ensure that the new password and confirmation match!",
           data: null,
         });
       }
