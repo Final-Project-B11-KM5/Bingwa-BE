@@ -119,9 +119,38 @@ const updateDetailLesson = async (req, res, next) => {
   }
 };
 
+const deleteLessonById = async (req, res, next) => {
+  try {
+    const lessonId = req.params.id;
+
+    const lesson = await findLessonById(lessonId);
+
+    if (!lesson) {
+      return res.status(404).json({
+        status: false,
+        message: "Lesson not found",
+        data: null,
+      });
+    }
+
+    const deletedLesson = await prisma.lesson.delete({
+      where: { id: Number(lessonId) },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Lesson deleted successfully",
+      data: { deletedLesson },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createLesson,
   getAllLessons,
   getDetailLesson,
   updateDetailLesson,
+  deleteLessonById,
 };
