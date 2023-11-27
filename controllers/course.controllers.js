@@ -166,6 +166,11 @@ module.exports = {
               courseName: true,
             },
           },
+          Chapter: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
       res.status(200).json({
@@ -179,55 +184,56 @@ module.exports = {
   },
   getCourse: async (req, res, next) => {
     try {
-      const {filter, category, level} = req.query
-      if(filter || category || level){
-
+      const { filter, category, level } = req.query;
+      if (filter || category || level) {
         const filterOptions = {
-          populer: { orderBy: { rating: 'desc' } },
-        terbaru: { orderBy: { release: 'desc' } },
-        promo: { where: { promotionId: { not: null } } },
-      };
+          populer: { orderBy: { rating: "desc" } },
+          terbaru: { orderBy: { release: "desc" } },
+          promo: { where: { promotionId: { not: null } } },
+        };
 
-      const query = {
-        ...filterOptions[filter],
-        where: {
-          Category: {
-            categoryName: {in: [...category]},
+        const query = {
+          ...filterOptions[filter],
+          where: {
+            Category: {
+              categoryName: { in: [...category] },
+            },
+            ...(level && { level: level }),
           },
-          ...(level && {level: level})
-        },
+        };
+
+        const courses = await prisma.course.findMany(query);
+
+        res.status(200).json({
+          status: true,
+          message: "Get Course Success",
+          data: courses,
+        });
+      } else {
+        const { limit = 2, page = 1 } = req.query;
+        const courses = await prisma.course.findMany({
+          skip: (Number(page) - 1) * Number(limit),
+          take: Number(limit),
+        });
+
+        const { _count } = await prisma.course.aggregate({
+          _count: { id: true },
+        });
+
+        const paggination = getPagination(
+          req,
+          _count.id,
+          Number(page),
+          Number(limit)
+        );
+
+        res.status(200).json({
+          status: true,
+          message: "Show All Kelas successful",
+          data: { paggination, courses },
+        });
       }
-      
-      const courses = await prisma.course.findMany(query);
-      
-      res.status(200).json({
-        status: true,
-        message: "Get Course Success",
-        data: courses
-      });
-    } else {
-      const { limit = 10, page = 1 } = req.query;
-      console.log(limit);
-
-      const courses = await prisma.course.findMany({
-        skip: (Number(page) - 1) * Number(limit),
-        take: Number(limit),
-      });
-
-      const { _count } = await prisma.course.aggregate({
-        _count: { id: true },
-      });
-
-      const paggination = getPagination(req, _count.id, Number(page), Number(limit));
-
-      res.status(200).json({
-        status: true,
-        message: "Show All Kelas successful",
-        data: { paggination, courses },
-      });
-    }
     } catch (error) {
-      console.log(error.message)
       next(error);
     }
   },
