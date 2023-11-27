@@ -79,8 +79,49 @@ const getDetailLesson = async (req, res, next) => {
   }
 };
 
+const updateDetailLesson = async (req, res, next) => {
+  try {
+    const lessonId = req.params.id;
+    const { lessonName, videoURL, chapterId } = req.body;
+
+    const lesson = await findLessonById(lessonId);
+
+    if (!lesson) {
+      return res.status(404).json({
+        status: false,
+        message: "Lesson not found",
+        data: null,
+      });
+    }
+
+    const chapter = await findChapterById(chapterId);
+
+    if (!chapter) {
+      return res.status(404).json({
+        status: false,
+        message: "Chapter not found",
+        data: null,
+      });
+    }
+
+    const updatedLesson = await prisma.lesson.update({
+      where: { id: Number(lessonId) },
+      data: { lessonName, videoURL, chapterId, updatedAt: new Date() },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Lesson updated successfully",
+      data: { updatedLesson },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createLesson,
   getAllLessons,
   getDetailLesson,
+  updateDetailLesson,
 };
