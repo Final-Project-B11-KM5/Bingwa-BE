@@ -151,19 +151,35 @@ module.exports = {
         terbaru: { orderBy: { release: 'desc' } },
         promo: { where: { promotionId: { not: null } } },
       };
-
+      console.log(typeof category === "string")
       const query = {
         ...filterOptions[filter],
         where: {
-          Category: {
-            categoryName: {in: [...category]},
+          category: {
+
+            categoryName: typeof category !== "string" ? {in: [...category]} : {in: [category]} ,
           },
           ...(level && {level: level})
         },
       }
-      
       const courses = await prisma.course.findMany(query);
       
+      res.status(200).json({
+        status: true,
+        message: "Get Course Success",
+        data: courses
+      });
+    }else if(req.query.search){
+      const {search} = req.query
+      const courses = await prisma.course.findMany({
+        where: {
+          courseName: {
+            contains: search,
+            mode: "insensitive"
+          }
+        }
+      })
+
       res.status(200).json({
         status: true,
         message: "Get Course Success",
