@@ -15,6 +15,8 @@ tags:
     description: Operations about Category
   - name: Courses
     description: Operations about Course
+  - name: Chapters
+    description: Operations about Chapter
 paths:
   /users/register:
     post:
@@ -614,7 +616,6 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/CourseModel"
-
   /courses/{courseId}:
     put:
       tags:
@@ -725,6 +726,168 @@ paths:
                     properties:
                       data:
                         $ref: "#/components/schemas/CourseModel"
+  /chapters:
+    post:
+      tags:
+        - Chapters
+      operationId: post-create-chapter
+      summary: Create chapter
+      description: Create chapter with the provided information.
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: "#/components/requestBodies/CreateChapter"
+      responses:
+        "201":
+          description: Create chapter was successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ChapterModel"
+    get:
+      tags:
+        - Chapters
+      operationId: get-all-chapters
+      summary: Get all chapters
+      description: Get all chapters
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: array
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ChapterModel"
+  /chapters/{chapterId}:
+    get:
+      tags:
+        - Chapters
+      operationId: get-chapter-by-id
+      summary: get chapter by id
+      description: get chapter by id
+      parameters:
+        - in: path
+          name: chapterId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the chapter to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ChapterModel"
+        "404":
+          description: Chapter Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+    put:
+      tags:
+        - Chapters
+      operationId: put-chapter-by-id
+      summary: Put chapter by id
+      description: Edit chapter by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: chapterId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the Chapter to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/EditChapter"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ChapterModel"
+        "404":
+          description: Chapter Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+    delete:
+      tags:
+        - Chapters
+      operationId: delete-chapter-by-id
+      summary: delete chapter by id
+      description: Delete chapter by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: chapterId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the chapter to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ChapterModel"
+        "404":
+          description: Chapter Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
 components:
   schemas:
     BasicResponse:
@@ -884,6 +1047,19 @@ components:
         promotionId:
           type: integer
           example: 1
+    ChapterModel:
+      title: Chapter
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Intro to Basic of User Interaction Design"
+        createdAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
   requestBodies:
     Register:
       content:
@@ -1107,6 +1283,24 @@ components:
               promotionId:
                 type: integer
                 example: null
+    CreateChapter:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Chapter 1 - Pendahuluan"
+    EditChapter:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Chapter 1 - Pendahuluan"
   securitySchemes:
     bearerAuth:
       type: http
