@@ -2,8 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  provider = "prisma-client-js"
+  // binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -55,11 +55,10 @@ model Course {
   forumURL         String
   duration         String
   release          DateTime   @default(now())
-  vidio            Vidio[]
-  categoryId       Int?
-  Category         Category?  @relation(fields: [categoryId], references: [id])
+  categoryId       Int
+  category         Category   @relation(fields: [categoryId], references: [id])
   promotionId      Int?
-  Promotion        Promotion? @relation(fields: [promotionId], references: [id])
+  promotion        Promotion? @relation(fields: [promotionId], references: [id])
   createdAt        DateTime   @default(now())
 }
 
@@ -67,7 +66,17 @@ model Chapter {
   id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
-  vidio     Vidio[]
+  lesson    Lesson[]
+}
+
+model Lesson {
+  id         Int      @id @default(autoincrement())
+  lessonName String
+  videoURL   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  chapterId  Int
+  chapter    Chapter  @relation(fields: [chapterId], references: [id])
 }
 
 model Promotion {
@@ -88,13 +97,4 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 }
 
-model Vidio {
-  id        Int      @id @default(autoincrement())
-  title     String
-  link      String
-  duration  Int
-  Course    Course?  @relation(fields: [courseId], references: [id])
-  courseId  Int?
-  Chapter   Chapter? @relation(fields: [chapterId], references: [id])
-  chapterId Int?
-}
+
