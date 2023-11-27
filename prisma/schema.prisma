@@ -2,14 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  provider = "prisma-client-js"
+  // binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -55,10 +55,28 @@ model Course {
   forumURL         String
   duration         String
   release          DateTime   @default(now())
-  categoryId       Int?
-  Category         Category?  @relation(fields: [categoryId], references: [id])
+  categoryId       Int
+  category         Category   @relation(fields: [categoryId], references: [id])
   promotionId      Int?
-  Promotion        Promotion? @relation(fields: [promotionId], references: [id])
+  promotion        Promotion? @relation(fields: [promotionId], references: [id])
+  createdAt        DateTime   @default(now())
+}
+
+model Chapter {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  lesson    Lesson[]
+}
+
+model Lesson {
+  id         Int      @id @default(autoincrement())
+  lessonName String
+  videoURL   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  chapterId  Int
+  chapter    Chapter  @relation(fields: [chapterId], references: [id])
 }
 
 model Promotion {
