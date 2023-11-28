@@ -3,8 +3,8 @@ const { createLesson, getAllLessons, getDetailLesson, updateDetailLesson, delete
 const Auth = require("../middlewares/authentication");
 const checkRole = require("../middlewares/checkRole");
 
-router.post("/", Auth, checkRole(["admin"]), createLesson);
 router.get("/", getAllLessons);
+router.post("/", Auth, checkRole(["admin"]), createLesson);
 router.get("/:id", Auth, checkRole(["user", "admin"]), getDetailLesson);
 router.put("/:id", Auth, checkRole(["admin"]), updateDetailLesson);
 router.delete("/:id", Auth, checkRole(["admin"]), deleteLessonById);

@@ -14,8 +14,8 @@ CREATE TABLE "User" (
 CREATE TABLE "UserProfile" (
     "id" SERIAL NOT NULL,
     "profilePicture" TEXT,
-    "fullName" TEXT,
-    "phoneNumber" TEXT,
+    "fullName" TEXT NOT NULL,
+    "phoneNumber" TEXT NOT NULL,
     "city" TEXT,
     "country" TEXT,
     "userId" INTEGER NOT NULL,
@@ -99,6 +99,9 @@ CREATE TABLE "Notification" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserProfile_phoneNumber_key" ON "UserProfile"("phoneNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserProfile_userId_key" ON "UserProfile"("userId");

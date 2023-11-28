@@ -12,14 +12,16 @@ module.exports = {
     try {
       let { fullName, email, phoneNumber, password } = req.body;
 
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email }, { userProfile: { phoneNumber } }],
+        },
       });
 
       if (existingUser) {
         return res.status(409).json({
           status: false,
-          message: "Email already exists",
+          message: "Email or phone number already exists",
           data: null,
         });
       }
