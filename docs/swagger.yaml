@@ -17,6 +17,8 @@ tags:
     description: Operations about Course
   - name: Chapters
     description: Operations about Chapter
+  - name: Lessons
+    description: Operations about Lesson
 paths:
   /users/register:
     post:
@@ -445,6 +447,26 @@ paths:
                           newUserProfile:
                             $ref: "#/components/schemas/UserProfileModel"
   /categories:
+    get:
+      tags:
+        - Categories
+      operationId: get-all-categories
+      summary: Get all categories
+      description: Get all categories
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CategoryModel"
     post:
       tags:
         - Categories
@@ -467,28 +489,6 @@ paths:
                     properties:
                       data:
                         $ref: "#/components/schemas/CategoryModel"
-    get:
-      tags:
-        - Categories
-      operationId: get-all-categories
-      summary: Get all categories
-      description: Get all categories
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/CategoryModel"
   /categories/{categoryId}:
     put:
       tags:
@@ -496,6 +496,8 @@ paths:
       operationId: put-category-by-id
       summary: Put category by id
       description: Edit category by id
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: categoryId
@@ -523,6 +525,8 @@ paths:
       operationId: delete-category-by-id
       summary: Delete category by id
       description: Delete category by id
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: categoryId
@@ -543,6 +547,31 @@ paths:
                       data:
                         $ref: "#/components/schemas/CategoryModel"
   /courses:
+    get:
+      tags:
+        - Courses
+      operationId: get-all-courses
+      summary: Get all courses
+      description: Get all courses
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          Pagination:
+                            $ref: "#/components/schemas/Pagination"
+                          courses:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/CourseModel"
     post:
       tags:
         - Courses
@@ -591,31 +620,6 @@ paths:
                   message:
                     type: string
                     example: "failed"
-    get:
-      tags:
-        - Courses
-      operationId: get-all-courses
-      summary: Get all courses
-      description: Get all courses
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          Pagination:
-                            $ref: "#/components/schemas/Pagination"
-                          courses:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/CourseModel"
   /courses/{courseId}:
     put:
       tags:
@@ -727,6 +731,24 @@ paths:
                       data:
                         $ref: "#/components/schemas/CourseModel"
   /chapters:
+    get:
+      tags:
+        - Chapters
+      operationId: get-all-chapters
+      summary: Get all chapters
+      description: Get all chapters
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: array
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ChapterModel"
     post:
       tags:
         - Chapters
@@ -746,24 +768,6 @@ paths:
                 allOf:
                   - $ref: "#/components/schemas/BasicResponse"
                   - type: object
-                    properties:
-                      data:
-                        $ref: "#/components/schemas/ChapterModel"
-    get:
-      tags:
-        - Chapters
-      operationId: get-all-chapters
-      summary: Get all chapters
-      description: Get all chapters
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: array
                     properties:
                       data:
                         $ref: "#/components/schemas/ChapterModel"
@@ -877,6 +881,185 @@ paths:
                         $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Chapter Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /lessons:
+    get:
+      tags:
+        - Lessons
+      operationId: get-all-lessons
+      summary: Get all lessons
+      description: Get all lessons
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: array
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          lessons:
+                            $ref: "#/components/schemas/LessonModel"
+    post:
+      tags:
+        - Lessons
+      operationId: post-create-lesson
+      summary: Create lesson
+      description: Create lesson with the provided information.
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: "#/components/requestBodies/CreateLesson"
+      responses:
+        "201":
+          description: Create lesson was successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newLesson:
+                            $ref: "#/components/schemas/LessonModel"
+  /lessons/{lessonId}:
+    get:
+      tags:
+        - Lessons
+      operationId: get-lesson-by-id
+      summary: get lesson by id
+      description: get lesson by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: lessonId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the lesson to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          lesson:
+                            $ref: "#/components/schemas/LessonModel"
+        "404":
+          description: Lesson Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+    put:
+      tags:
+        - Lessons
+      operationId: put-lesson-by-id
+      summary: Put lesson by id
+      description: Edit lesson by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: lessonId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the lesson to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/EditLesson"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          updatedLesson:
+                            $ref: "#/components/schemas/LessonModel"
+        "404":
+          description: Lesson or Chapter Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+    delete:
+      tags:
+        - Lessons
+      operationId: delete-lesson-by-id
+      summary: delete lesson by id
+      description: Delete lesson by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: lessonId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the lesson to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deletedLesson:
+                            $ref: "#/components/schemas/LessonModel"
+        "404":
+          description: Lesson Not Found
           content:
             application/json:
               schema:
@@ -1060,6 +1243,28 @@ components:
         createdAt:
           type: string
           example: "2023-11-24T01:11:59.133Z"
+    LessonModel:
+      title: Lesson
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        lessonName:
+          type: string
+          example: "The Purpose of Taking Design System Classes"
+        videoURL:
+          type: string
+          example: "https://youtu.be/ixOd42SEUF0"
+        createdAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        updatedAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        chapterId:
+          type: integer
+          example: 1
   requestBodies:
     Register:
       content:
@@ -1085,7 +1290,7 @@ components:
           schema:
             type: object
             properties:
-              email:
+              emailOrPhoneNumber:
                 type: string
                 example: "budi@mail.com"
               password:
@@ -1301,6 +1506,36 @@ components:
               name:
                 type: string
                 example: "Chapter 1 - Pendahuluan"
+    CreateLesson:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              lessonName:
+                type: string
+                example: "The Purpose of Taking Design System Classes"
+              videoURL:
+                type: string
+                example: "https://youtu.be/ixOd42SEUF0"
+              chapterId:
+                type: integer
+                example: 1
+    EditLesson:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              lessonName:
+                type: string
+                example: "The Purpose of Taking Design System Classes"
+              videoURL:
+                type: string
+                example: "https://youtu.be/ixOd42SEUF0"
+              chapterId:
+                type: integer
+                example: 1
   securitySchemes:
     bearerAuth:
       type: http

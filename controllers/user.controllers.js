@@ -12,14 +12,16 @@ module.exports = {
     try {
       let { fullName, email, phoneNumber, password } = req.body;
 
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email }, { userProfile: { phoneNumber } }],
+        },
       });
 
       if (existingUser) {
         return res.status(409).json({
           status: false,
-          message: "Email already exists",
+          message: "Email or phone number already exists",
           data: null,
         });
       }
@@ -207,7 +209,8 @@ module.exports = {
       if (password !== passwordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please ensure that the password and password confirmation match!",
+          message:
+            "Please ensure that the password and password confirmation match!",
           data: null,
         });
       }
@@ -276,7 +279,10 @@ module.exports = {
     try {
       const { oldPassword, newPassword, newPasswordConfirmation } = req.body;
 
-      let isOldPasswordCorrect = await bcrypt.compare(oldPassword, req.user.password);
+      let isOldPasswordCorrect = await bcrypt.compare(
+        oldPassword,
+        req.user.password
+      );
       if (!isOldPasswordCorrect) {
         return res.status(401).json({
           status: false,
@@ -288,7 +294,8 @@ module.exports = {
       if (newPassword !== newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please ensure that the new password and confirmation match!",
+          message:
+            "Please ensure that the new password and confirmation match!",
           data: null,
         });
       }
