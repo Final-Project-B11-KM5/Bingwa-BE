@@ -58,10 +58,12 @@ module.exports = {
 
   login: async (req, res, next) => {
     try {
-      let { email, password } = req.body;
+      let { emailOrPhoneNumber, password } = req.body;
 
-      const user = await prisma.user.findUnique({
-        where: { email },
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [{ email: emailOrPhoneNumber }, { userProfile: { phoneNumber: emailOrPhoneNumber } }],
+        },
       });
 
       if (!user) {
