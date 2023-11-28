@@ -10,12 +10,19 @@ const findChapterById = async (chapterId) => {
 const findLessonById = async (lessonId) => {
   return await prisma.lesson.findUnique({
     where: { id: Number(lessonId) },
+    include: {
+      chapter: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 };
 
 const createLesson = async (req, res, next) => {
   try {
-    const { lessonName, videoURL, chapterId } = req.body;
+    const { lessonName, videoURL, chapterId, courseId } = req.body;
 
     const chapter = await findChapterById(chapterId);
 
@@ -28,7 +35,7 @@ const createLesson = async (req, res, next) => {
     }
 
     const newLesson = await prisma.lesson.create({
-      data: { lessonName, videoURL, chapterId },
+      data: { lessonName, videoURL, chapterId, courseId },
     });
 
     res.status(201).json({
@@ -43,7 +50,15 @@ const createLesson = async (req, res, next) => {
 
 const getAllLessons = async (req, res, next) => {
   try {
-    const lessons = await prisma.lesson.findMany();
+    const lessons = await prisma.lesson.findMany({
+      include: {
+        chapter: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
 
     res.status(200).json({
       status: true,
@@ -82,7 +97,7 @@ const getDetailLesson = async (req, res, next) => {
 const updateDetailLesson = async (req, res, next) => {
   try {
     const lessonId = req.params.id;
-    const { lessonName, videoURL, chapterId } = req.body;
+    const { lessonName, videoURL, chapterId, courseId } = req.body;
 
     const lesson = await findLessonById(lessonId);
 
@@ -106,7 +121,13 @@ const updateDetailLesson = async (req, res, next) => {
 
     const updatedLesson = await prisma.lesson.update({
       where: { id: Number(lessonId) },
-      data: { lessonName, videoURL, chapterId, updatedAt: new Date() },
+      data: {
+        lessonName,
+        videoURL,
+        chapterId,
+        courseId,
+        updatedAt: new Date(),
+      },
     });
 
     res.status(200).json({
@@ -147,10 +168,75 @@ const deleteLessonById = async (req, res, next) => {
   }
 };
 
+const searchLesson = async (req, res, next) => {
+  try {
+    const { chapter, lessonName, course } = req.query;
+    if (chapter || title || course) {
+      let filterLesson = await prisma.lesson.findMany({
+        where: {
+          OR: [
+            {
+              lessonName: {
+                contains: lessonName || "a",
+                mode: "insensitive",
+              },
+            },
+          ],
+          chapter: {
+            OR: [
+              {
+                name: {
+                  contains: chapter || "a", //adakah solusi lebih clean untuk query filter chapter ?
+                  mode: "insensitive",
+                },
+              },
+            ],
+          },
+          Course: {
+            OR: [
+              {
+                courseName: {
+                  contains: course || "a",
+                  mode: "insensitive",
+                },
+              },
+            ],
+          },
+        },
+        include: {
+          chapter: {
+            select: {
+              name: true,
+            },
+          },
+          Course: {
+            select: {
+              courseName: true,
+            },
+          },
+        },
+      });
+      return res.status(200).json({
+        status: true,
+        message: "Succes Filter Or Search Vidio",
+        data: filterLesson,
+      });
+    }
+    res.status(400).json({
+      status: false,
+      message: "Bad Request",
+      data: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createLesson,
   getAllLessons,
   getDetailLesson,
   updateDetailLesson,
   deleteLessonById,
+  searchLesson,
 };

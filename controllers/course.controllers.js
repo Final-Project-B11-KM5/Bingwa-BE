@@ -140,7 +140,48 @@ module.exports = {
       next(err);
     }
   },
+  showVidioByCourse: async (req, res, next) => {
+    try {
+      const { idCourse } = req.params;
+      const findCourse = await prisma.course.findFirst({
+        where: {
+          id: Number(idCourse),
+        },
+      });
+      if (!findCourse) {
+        return res.status(404).json({
+          status: false,
+          message: `Course Not Found With Id ${idCourse}`,
+          data: null,
+        });
+      }
 
+      let filterVidio = await prisma.vidio.findMany({
+        where: {
+          idCourse,
+        },
+        include: {
+          Course: {
+            select: {
+              courseName: true,
+            },
+          },
+          Chapter: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+      res.status(200).json({
+        status: true,
+        message: "Show All Vidio in Course ",
+        data: filterVidio,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
   getCourse: async (req, res, next) => {
     try {
       const {filter, category, level} = req.query
