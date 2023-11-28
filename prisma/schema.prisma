@@ -26,8 +26,8 @@ model User {
 model UserProfile {
   id             Int     @id @default(autoincrement())
   profilePicture String?
-  fullName       String?
-  phoneNumber    String?
+  fullName       String
+  phoneNumber    String  @unique
   city           String?
   country        String?
   userId         Int     @unique
