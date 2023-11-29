@@ -29,4 +29,42 @@ module.exports = {
       next(err);
     }
   },
+
+  getDetailEnrollment: async (req, res, next) => {
+    try {
+      const enrollmentId = req.params.id;
+
+      let enrollment = await prisma.enrollment.findUnique({
+        where: { id: enrollmentId },
+        include: {
+          course: {
+            include: {
+              category: true,
+              chapter: {
+                include: {
+                  lesson: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!enrollment) {
+        return res.status(404).json({
+          status: false,
+          message: "Enrollment not found",
+          data: null,
+        });
+      }
+
+      return res.status(200).json({
+        status: true,
+        message: "Get detail enrollment successful",
+        data: { enrollment },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
