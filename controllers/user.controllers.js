@@ -322,6 +322,16 @@ module.exports = {
         });
       }
 
+      const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+      if (!passwordValidator.test(newPassword)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be at least 8 characters long.",
+          data: null,
+        });
+      }
+
       if (newPassword !== newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
