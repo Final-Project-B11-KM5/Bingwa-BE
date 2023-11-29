@@ -22,7 +22,7 @@ const findLessonById = async (lessonId) => {
 
 const createLesson = async (req, res, next) => {
   try {
-    const { lessonName, videoURL, chapterId, courseId } = req.body;
+    const { lessonName, videoURL, chapterId } = req.body;
 
     const chapter = await findChapterById(chapterId);
 
@@ -35,7 +35,7 @@ const createLesson = async (req, res, next) => {
     }
 
     const newLesson = await prisma.lesson.create({
-      data: { lessonName, videoURL, chapterId, courseId },
+      data: { lessonName, videoURL, chapterId },
     });
 
     res.status(201).json({
@@ -97,7 +97,7 @@ const getDetailLesson = async (req, res, next) => {
 const updateDetailLesson = async (req, res, next) => {
   try {
     const lessonId = req.params.id;
-    const { lessonName, videoURL, chapterId, courseId } = req.body;
+    const { lessonName, videoURL, chapterId } = req.body;
 
     const lesson = await findLessonById(lessonId);
 
@@ -125,7 +125,6 @@ const updateDetailLesson = async (req, res, next) => {
         lessonName,
         videoURL,
         chapterId,
-        courseId,
         updatedAt: new Date(),
       },
     });
