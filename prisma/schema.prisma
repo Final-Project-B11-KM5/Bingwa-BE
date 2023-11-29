@@ -21,6 +21,7 @@ model User {
   role         String         @default("user")
   userProfile  UserProfile?
   notification Notification[]
+  enrollment   Enrollment[]
 }
 
 model UserProfile {
@@ -41,7 +42,7 @@ model Category {
 }
 
 model Course {
-  id               Int        @id @default(autoincrement())
+  id               Int          @id @default(autoincrement())
   courseName       String
   price            Int
   rating           Int
@@ -54,13 +55,14 @@ model Course {
   videoURL         String
   forumURL         String
   duration         String
-  release          DateTime   @default(now())
+  release          DateTime     @default(now())
   chapter          Chapter[]
+  enrollment       Enrollment[]
   categoryId       Int
-  category         Category   @relation(fields: [categoryId], references: [id])
+  category         Category     @relation(fields: [categoryId], references: [id])
   promotionId      Int?
-  promotion        Promotion? @relation(fields: [promotionId], references: [id])
-  createdAt        DateTime   @default(now())
+  promotion        Promotion?   @relation(fields: [promotionId], references: [id])
+  createdAt        DateTime     @default(now())
 }
 
 model Chapter {
@@ -98,4 +100,14 @@ model Notification {
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Enrollment {
+  int      Int      @id @default(autoincrement())
+  createAt DateTime @default(now())
+  isPaid   Boolean
+  User     User?    @relation(fields: [userId], references: [id])
+  userId   Int?
+  Course   Course?  @relation(fields: [courseId], references: [id])
+  courseId Int?
 }
