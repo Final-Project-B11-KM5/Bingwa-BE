@@ -1497,6 +1497,9 @@ components:
               name:
                 type: string
                 example: "Chapter 1 - Pendahuluan"
+              courseId:
+                type: integer
+                example: 1
     EditChapter:
       content:
         application/json:
@@ -1506,6 +1509,9 @@ components:
               name:
                 type: string
                 example: "Chapter 1 - Pendahuluan"
+              courseId:
+                type: integer
+                example: 1
     CreateLesson:
       content:
         application/json:

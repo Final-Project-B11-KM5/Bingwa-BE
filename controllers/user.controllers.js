@@ -11,6 +11,7 @@ module.exports = {
   register: async (req, res, next) => {
     try {
       let { fullName, email, phoneNumber, password } = req.body;
+      const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
       const existingUser = await prisma.user.findFirst({
         where: {
@@ -22,6 +23,30 @@ module.exports = {
         return res.status(409).json({
           status: false,
           message: "Email or phone number already exists",
+          data: null,
+        });
+      }
+
+      if (!/^\d+$/.test(phoneNumber)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid phone number format. It must contain only numeric characters.",
+          data: null,
+        });
+      }
+
+      if (phoneNumber.length < 10 || phoneNumber.length > 12) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid phone number length. It must be between 10 and 12 characters.",
+          data: null,
+        });
+      }
+
+      if (!passwordValidator.test(password)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be at least 8 characters long.",
           data: null,
         });
       }
@@ -206,11 +231,20 @@ module.exports = {
       let { token } = req.query;
       let { password, passwordConfirmation } = req.body;
 
+      const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+      if (!passwordValidator.test(password)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be at least 8 characters long.",
+          data: null,
+        });
+      }
+
       if (password !== passwordConfirmation) {
         return res.status(400).json({
           status: false,
-          message:
-            "Please ensure that the password and password confirmation match!",
+          message: "Please ensure that the password and password confirmation match!",
           data: null,
         });
       }
@@ -279,10 +313,7 @@ module.exports = {
     try {
       const { oldPassword, newPassword, newPasswordConfirmation } = req.body;
 
-      let isOldPasswordCorrect = await bcrypt.compare(
-        oldPassword,
-        req.user.password
-      );
+      let isOldPasswordCorrect = await bcrypt.compare(oldPassword, req.user.password);
       if (!isOldPasswordCorrect) {
         return res.status(401).json({
           status: false,
@@ -294,8 +325,7 @@ module.exports = {
       if (newPassword !== newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
-          message:
-            "Please ensure that the new password and confirmation match!",
+          message: "Please ensure that the new password and confirmation match!",
           data: null,
         });
       }
