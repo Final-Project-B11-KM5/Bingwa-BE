@@ -55,7 +55,7 @@ model Course {
   forumURL         String
   duration         String
   release          DateTime   @default(now())
-  lesson           Lesson[]
+  chapter          Chapter[]
   categoryId       Int
   category         Category   @relation(fields: [categoryId], references: [id])
   promotionId      Int?
@@ -67,6 +67,8 @@ model Chapter {
   id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
+  courseId  Int?
+  course    Course?  @relation(fields: [courseId], references: [id])
   lesson    Lesson[]
 }
 
@@ -78,8 +80,6 @@ model Lesson {
   updatedAt  DateTime @default(now())
   chapterId  Int
   chapter    Chapter  @relation(fields: [chapterId], references: [id])
-  Course     Course?  @relation(fields: [courseId], references: [id])
-  courseId   Int?
 }
 
 model Promotion {

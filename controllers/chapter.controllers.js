@@ -3,11 +3,12 @@ const prisma = new PrismaClient();
 
 const createChapter = async (req, res, next) => {
   try {
-    const { name } = req.body;
+    const { name, courseId } = req.body;
 
     const chapter = await prisma.chapter.create({
       data: {
         name,
+        courseId,
       },
     });
 
@@ -45,10 +46,7 @@ const getChapterById = async (req, res, next) => {
       },
     });
 
-    if (!chapter)
-      return res
-        .status(404)
-        .json({ status: false, message: "chapter not found", data: null });
+    if (!chapter) return res.status(404).json({ status: false, message: "chapter not found", data: null });
 
     res.status(201).json({
       status: true,
@@ -70,10 +68,7 @@ const updateCHapter = async (req, res, next) => {
       },
     });
 
-    if (!isExistChapter)
-      return res
-        .status(404)
-        .json({ status: false, message: "chapter not found", data: null });
+    if (!isExistChapter) return res.status(404).json({ status: false, message: "chapter not found", data: null });
 
     const chapter = await prisma.chapter.update({
       where: {
@@ -104,10 +99,7 @@ const deleteChapter = async (req, res, next) => {
       },
     });
 
-    if (!isExistChapter)
-      return res
-        .status(404)
-        .json({ status: false, message: "chapter not found", data: null });
+    if (!isExistChapter) return res.status(404).json({ status: false, message: "chapter not found", data: null });
 
     await prisma.chapter.delete({
       where: {
