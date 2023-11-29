@@ -1283,7 +1283,7 @@ components:
                 example: "08123456789"
               password:
                 type: string
-                example: "123456"
+                example: "Budi123*"
     Login:
       content:
         application/json:
@@ -1295,7 +1295,7 @@ components:
                 example: "budi@mail.com"
               password:
                 type: string
-                example: "123456"
+                example: "Budi123*"
     VerifyOtp:
       content:
         application/json:
@@ -1334,10 +1334,10 @@ components:
             properties:
               password:
                 type: string
-                example: "123456"
+                example: "Budi123*"
               passwordConfirmation:
                 type: string
-                example: "123456"
+                example: "Budi123*"
     ChangePassword:
       content:
         application/json:
@@ -1346,13 +1346,13 @@ components:
             properties:
               oldPassword:
                 type: string
-                example: "123456"
+                example: "Budi123*"
               newPassword:
                 type: string
-                example: "test123"
+                example: "Test123*"
               newPasswordConfirmation:
                 type: string
-                example: "test123"
+                example: "Test123*"
     UpdateProfile:
       content:
         multipart/form-data:
