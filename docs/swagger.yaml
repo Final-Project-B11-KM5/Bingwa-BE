@@ -19,6 +19,8 @@ tags:
     description: Operations about Chapter
   - name: Lessons
     description: Operations about Lesson
+  - name: Enrollments
+    description: Operations about Enrollment
 paths:
   /users/register:
     post:
@@ -745,10 +747,12 @@ paths:
               schema:
                 allOf:
                   - $ref: "#/components/schemas/BasicResponse"
-                  - type: array
+                  - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ChapterModel"
     post:
       tags:
         - Chapters
@@ -907,13 +911,15 @@ paths:
               schema:
                 allOf:
                   - $ref: "#/components/schemas/BasicResponse"
-                  - type: array
+                  - type: object
                     properties:
                       data:
                         type: object
                         properties:
                           lessons:
-                            $ref: "#/components/schemas/LessonModel"
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/LessonModel"
     post:
       tags:
         - Lessons
@@ -1060,6 +1066,118 @@ paths:
                             $ref: "#/components/schemas/LessonModel"
         "404":
           description: Lesson Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /enrollments:
+    get:
+      tags:
+        - Enrollments
+      operationId: get-all-enrollments
+      summary: Get all enrollments
+      description: Get all enrollments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          enrollments:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/EnrollmentModel"
+                                - type: object
+                                  properties:
+                                    course:
+                                      allOf:
+                                        - $ref: "#/components/schemas/CourseModel"
+                                        - type: object
+                                          properties:
+                                            category:
+                                              $ref: "#/components/schemas/CategoryModel"
+                                            chapters:
+                                              type: array
+                                              items:
+                                                allOf:
+                                                  - $ref: "#/components/schemas/ChapterModel"
+                                                  - type: object
+                                                    properties:
+                                                      lesson:
+                                                        type: array
+                                                        items:
+                                                          $ref: "#/components/schemas/LessonModel"
+  /enrollments/{enrollmentId}:
+    get:
+      tags:
+        - Enrollments
+      operationId: get-enrollment-by-id
+      summary: get enrollment by id
+      description: get enrollment by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: enrollmentId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the enrollment to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          enrollment:
+                            allOf:
+                              - $ref: "#/components/schemas/EnrollmentModel"
+                              - type: object
+                                properties:
+                                  course:
+                                    allOf:
+                                      - $ref: "#/components/schemas/CourseModel"
+                                      - type: object
+                                        properties:
+                                          category:
+                                            $ref: "#/components/schemas/CategoryModel"
+                                          chapters:
+                                            type: array
+                                            items:
+                                              allOf:
+                                                - $ref: "#/components/schemas/ChapterModel"
+                                                - type: object
+                                                  properties:
+                                                    lesson:
+                                                      type: array
+                                                      items:
+                                                        $ref: "#/components/schemas/LessonModel"
+        "404":
+          description: Enrollment Not Found
           content:
             application/json:
               schema:
@@ -1243,6 +1361,9 @@ components:
         createdAt:
           type: string
           example: "2023-11-24T01:11:59.133Z"
+        courseId:
+          type: integer
+          example: 1
     LessonModel:
       title: Lesson
       type: object
@@ -1263,6 +1384,25 @@ components:
           type: string
           example: "2023-11-24T01:11:59.133Z"
         chapterId:
+          type: integer
+          example: 1
+    EnrollmentModel:
+      title: Enrollment
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        isPaid:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        userId:
+          type: integer
+          example: 1
+        courseId:
           type: integer
           example: 1
   requestBodies:

@@ -46,10 +46,9 @@ CREATE TABLE "Course" (
     "videoURL" TEXT NOT NULL,
     "forumURL" TEXT NOT NULL,
     "duration" TEXT NOT NULL,
-    "release" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "categoryId" INTEGER NOT NULL,
     "promotionId" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
 );
@@ -100,13 +99,13 @@ CREATE TABLE "Notification" (
 
 -- CreateTable
 CREATE TABLE "Enrollment" (
-    "int" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
+    "isPaid" BOOLEAN NOT NULL DEFAULT false,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "isPaid" BOOLEAN NOT NULL,
     "userId" INTEGER NOT NULL,
     "courseId" INTEGER NOT NULL,
 
-    CONSTRAINT "Enrollment_pkey" PRIMARY KEY ("int")
+    CONSTRAINT "Enrollment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
