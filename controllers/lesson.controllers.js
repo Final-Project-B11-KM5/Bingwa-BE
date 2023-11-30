@@ -22,7 +22,7 @@ const findLessonById = async (lessonId) => {
 
 const createLesson = async (req, res, next) => {
   try {
-    const { lessonName, videoURL, chapterId } = req.body;
+    const { lessonName, videoURL, chapterId, courseId } = req.body;
 
     const chapter = await findChapterById(chapterId);
 
@@ -35,7 +35,7 @@ const createLesson = async (req, res, next) => {
     }
 
     const newLesson = await prisma.lesson.create({
-      data: { lessonName, videoURL, chapterId },
+      data: { lessonName, videoURL, chapterId, courseId },
     });
 
     res.status(201).json({
@@ -169,38 +169,34 @@ const deleteLessonById = async (req, res, next) => {
 
 const searchLesson = async (req, res, next) => {
   try {
-    const { chapter, lessonName, course } = req.query;
-    if (chapter || title || course) {
+    const { chapter, lesson, course } = req.query;
+    if (chapter || lesson || course) {
       let filterLesson = await prisma.lesson.findMany({
         where: {
-          OR: [
+          AND: [
             {
               lessonName: {
-                contains: lessonName || "a",
+                contains: lesson ,
                 mode: "insensitive",
               },
             },
-          ],
-          chapter: {
-            OR: [
-              {
+            {
+              chapter: {
                 name: {
-                  contains: chapter || "a", //adakah solusi lebih clean untuk query filter chapter ?
+                  contains: chapter ,
                   mode: "insensitive",
                 },
               },
-            ],
-          },
-          Course: {
-            OR: [
-              {
+            },
+            {
+              Course: {
                 courseName: {
-                  contains: course || "a",
+                  contains: course ,
                   mode: "insensitive",
                 },
               },
-            ],
-          },
+            },
+          ],
         },
         include: {
           chapter: {
@@ -231,6 +227,46 @@ const searchLesson = async (req, res, next) => {
   }
 };
 
+async function showLessonByCourse(req, res, next) {
+  try {
+    const { idCourse } = req.params;
+    const findCourse = await prisma.course.findFirst({
+      where: {
+        id: Number(idCourse),
+      },
+    });
+    if (!findCourse) {
+      return res.status(404).json({
+        status: false,
+        message: `Course Not Found With Id ${idCourse}`,
+        data: null,
+      });
+    }
+
+    let filterLesson = await prisma.chapter.findMany({
+      where: {
+        courseId: Number(idCourse),
+      },
+      include: {
+        lesson: {
+          select: {
+            lessonName: true,
+            videoURL: true,
+          },
+        },
+      },
+    });
+    res.status(200).json({
+      status: true,
+      message: "Show All Vidio in Course",
+      data: filterLesson,
+    });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+}
+
 module.exports = {
   createLesson,
   getAllLessons,
@@ -238,4 +274,5 @@ module.exports = {
   updateDetailLesson,
   deleteLessonById,
   searchLesson,
+  showLessonByCourse,
 };
