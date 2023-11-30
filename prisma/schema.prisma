@@ -55,14 +55,13 @@ model Course {
   videoURL         String
   forumURL         String
   duration         String
-  release          DateTime     @default(now())
   chapter          Chapter[]
   enrollment       Enrollment[]
+  createdAt        DateTime     @default(now())
   categoryId       Int
   category         Category     @relation(fields: [categoryId], references: [id])
   promotionId      Int?
   promotion        Promotion?   @relation(fields: [promotionId], references: [id])
-  createdAt        DateTime     @default(now())
 }
 
 model Chapter {
@@ -103,11 +102,11 @@ model Notification {
 }
 
 model Enrollment {
-  int      Int      @id @default(autoincrement())
+  id       Int      @id @default(autoincrement())
+  isPaid   Boolean  @default(false)
   createAt DateTime @default(now())
-  isPaid   Boolean
   userId   Int
-  User     User     @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
   courseId Int
-  Course   Course   @relation(fields: [courseId], references: [id])
+  course   Course   @relation(fields: [courseId], references: [id])
 }

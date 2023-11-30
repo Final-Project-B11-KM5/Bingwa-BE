@@ -2,9 +2,9 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 module.exports = {
-  getAllEnrollment: async (req, res, next) => {
+  getAllEnrollments: async (req, res, next) => {
     try {
-      let enrollments = await prisma.enrollment.findMany({
+      const enrollments = await prisma.enrollment.findMany({
         where: { userId: req.user.id },
         include: {
           course: {
@@ -22,7 +22,7 @@ module.exports = {
 
       return res.status(200).json({
         status: true,
-        message: "Get all category successful",
+        message: "Get all enrollments successful",
         data: { enrollments },
       });
     } catch (err) {
@@ -35,7 +35,7 @@ module.exports = {
       const enrollmentId = req.params.id;
 
       let enrollment = await prisma.enrollment.findUnique({
-        where: { id: enrollmentId },
+        where: { id: Number(enrollmentId) },
         include: {
           course: {
             include: {
