@@ -17,7 +17,7 @@ app.use(router);
 app.use((req, res, next) => {
   res.status(404).json({
     status: false,
-    message: "Bad Request",
+    message:"Bad Request",
     data: null,
   });
 });
