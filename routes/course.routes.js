@@ -6,7 +6,6 @@ const {
   detailCourse,
   showAllCourse,
   getCourse,
-  showVidioByCourse
 } = require("../controllers/course.controllers");
 const Auth = require("../middlewares/authentication");
 const checkRole = require("../middlewares/checkRole");
@@ -19,5 +18,4 @@ router.put("/:idCourse", Auth, checkRole(["admin"]), editCourse);
 router.delete("/:idCourse", Auth, checkRole(["admin"]), deleteCourse);
 
 // display videos in the course
-router.get("/:idCourse/vidio", showVidioByCourse);
 module.exports = router;
