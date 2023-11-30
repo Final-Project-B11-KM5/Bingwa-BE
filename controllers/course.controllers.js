@@ -115,6 +115,19 @@ module.exports = {
         where: {
           id: Number(idCourse),
         },
+        include: {
+          lesson: {
+            select: {
+              lessonName: true,
+              videoURL: true,
+              chapter: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       });
       if (!checkCourse) {
         return res.status(404).json({
@@ -137,48 +150,6 @@ module.exports = {
       next(err);
     }
   },
-  showVidioByCourse: async (req, res, next) => {
-    try {
-      const { idCourse } = req.params;
-      const findCourse = await prisma.course.findFirst({
-        where: {
-          id: Number(idCourse),
-        },
-      });
-      if (!findCourse) {
-        return res.status(404).json({
-          status: false,
-          message: `Course Not Found With Id ${idCourse}`,
-          data: null,
-        });
-      }
-
-      let filterVidio = await prisma.vidio.findMany({
-        where: {
-          idCourse,
-        },
-        include: {
-          Course: {
-            select: {
-              courseName: true,
-            },
-          },
-          Chapter: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      });
-      res.status(200).json({
-        status: true,
-        message: "Show All Vidio in Course ",
-        data: filterVidio,
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
   getCourse: async (req, res, next) => {
     try {
       const { filter, category, level } = req.query;
@@ -193,7 +164,10 @@ module.exports = {
           ...filterOptions[filter],
           where: {
             category: {
-              categoryName: typeof category !== "string" ? { in: [...category] } : { in: [category] },
+              categoryName:
+                typeof category !== "string"
+                  ? { in: [...category] }
+                  : { in: [category] },
             },
             ...(level && { level: level }),
           },
@@ -234,7 +208,12 @@ module.exports = {
           _count: { id: true },
         });
 
-        const paggination = getPagination(req, _count.id, Number(page), Number(limit));
+        const paggination = getPagination(
+          req,
+          _count.id,
+          Number(page),
+          Number(limit)
+        );
 
         res.status(200).json({
           status: true,
