@@ -16,7 +16,6 @@ module.exports = {
         data: newCategory,
       });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   },
@@ -53,7 +52,6 @@ module.exports = {
         data: editCategory,
       });
     } catch (err) {
-      console.log(err.message);
       next(err);
     }
   },
@@ -72,7 +70,6 @@ module.exports = {
         data: deleteCategory,
       });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   },
