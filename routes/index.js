@@ -10,6 +10,7 @@ const Course = require("./course.routes");
 const Chapter = require("./chapter.routes");
 const Lesson = require("./lesson.routes");
 const Enrollment = require("./enrollment.routes");
+const Promotion = require("./promotion.routes");
 
 const file = fs.readFileSync("docs/swagger.yaml", "utf8");
 
@@ -25,5 +26,6 @@ router.use("/api/v1/courses", Course);
 router.use("/api/v1/chapters", Chapter);
 router.use("/api/v1/lessons", Lesson);
 router.use("/api/v1/enrollments", Enrollment);
+router.use("/api/v1/promotions", Promotion);
 
 module.exports = router;
