@@ -19,4 +19,18 @@ module.exports = {
       next(err);
     }
   },
+
+  getAllPromotions: async (req, res, next) => {
+    try {
+      const promotions = await prisma.promotion.findMany();
+
+      res.status(200).json({
+        status: true,
+        message: "Get all promotions successful",
+        data: { promotions },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
