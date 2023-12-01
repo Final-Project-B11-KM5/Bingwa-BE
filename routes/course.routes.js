@@ -5,12 +5,14 @@ const {
   deleteCourse,
   detailCourse,
   showAllCourse,
+  getMyCourse,
   getCourse,
 } = require("../controllers/course.controllers");
 const Auth = require("../middlewares/authentication");
 const checkRole = require("../middlewares/checkRole");
 
 router.get("/", getCourse);
+router.get("/me",Auth, getMyCourse);
 router.post("/", Auth, checkRole(["admin"]), createCourse);
 // router.get("/", Auth, checkRole(["admin"]), showAllCourse); // USER nanti gabsia lihat kelas apa aja dong sblm login
 router.get("/:idCourse", detailCourse);
