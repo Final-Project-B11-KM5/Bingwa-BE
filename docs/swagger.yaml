@@ -1339,7 +1339,7 @@ components:
         duration:
           type: string
           example: "120 Minute"
-        release:
+        createdAt:
           type: string
           example: "2023-11-24T01:11:59.133Z"
         categoryId:
