@@ -19,6 +19,7 @@ model User {
   otp          String
   isVerified   Boolean        @default(false)
   role         String         @default("user")
+  courses      Course[]       @relation("UserToCourse")
   userProfile  UserProfile?
   notification Notification[]
   enrollment   Enrollment[]
@@ -58,6 +59,7 @@ model Course {
   chapter          Chapter[]
   enrollment       Enrollment[]
   lesson           Lesson[]
+  user             User[]         @relation("UserToCourse")
   createdAt        DateTime     @default(now())
   categoryId       Int
   category         Category     @relation(fields: [categoryId], references: [id])

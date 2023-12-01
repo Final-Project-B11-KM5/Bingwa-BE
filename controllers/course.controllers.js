@@ -150,6 +150,28 @@ module.exports = {
       next(err);
     }
   },
+  getMyCourse: async (req,res,next) => {
+    try {
+      const {email} = req.user
+
+      const {courses}= await prisma.user.findUnique({
+        where:{
+          email: email
+        },
+       include:{
+        courses: true
+       }
+      })
+      
+      res.json({
+        status: true,
+        message: "Success",
+        data: [...courses]
+      })
+    } catch (error) {
+      next(error)
+    }
+  },
   getCourse: async (req, res, next) => {
     try {
       const { filter, category, level } = req.query;
