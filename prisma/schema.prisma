@@ -2,14 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  // binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -58,7 +58,6 @@ model Course {
   duration         String
   chapter          Chapter[]
   enrollment       Enrollment[]
-  lesson           Lesson[]
   user             User[]       @relation("UserToCourse")
   createdAt        DateTime     @default(now())
   categoryId       Int
@@ -84,8 +83,6 @@ model Lesson {
   updatedAt  DateTime @default(now())
   chapterId  Int
   chapter    Chapter  @relation(fields: [chapterId], references: [id])
-  Course     Course?  @relation(fields: [courseId], references: [id])
-  courseId   Int?
 }
 
 model Promotion {
