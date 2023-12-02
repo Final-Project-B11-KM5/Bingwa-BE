@@ -185,6 +185,7 @@ module.exports = {
       });
 
       const course = enrollment.course;
+
       const enrollments = await prisma.enrollment.findMany({
         where: { courseId: course.id, userRating: { not: null } },
       });
