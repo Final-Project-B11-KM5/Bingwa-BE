@@ -36,7 +36,7 @@ CREATE TABLE "Course" (
     "id" SERIAL NOT NULL,
     "courseName" TEXT NOT NULL,
     "price" INTEGER NOT NULL,
-    "rating" INTEGER NOT NULL,
+    "averageRating" DECIMAL(65,30),
     "level" TEXT NOT NULL,
     "aboutCourse" TEXT NOT NULL,
     "targetAudience" TEXT NOT NULL,
@@ -71,7 +71,6 @@ CREATE TABLE "Lesson" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "chapterId" INTEGER NOT NULL,
-    "courseId" INTEGER,
 
     CONSTRAINT "Lesson_pkey" PRIMARY KEY ("id")
 );
@@ -101,7 +100,7 @@ CREATE TABLE "Notification" (
 -- CreateTable
 CREATE TABLE "Enrollment" (
     "id" SERIAL NOT NULL,
-    "isPaid" BOOLEAN NOT NULL DEFAULT false,
+    "userRating" INTEGER,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" INTEGER NOT NULL,
     "courseId" INTEGER NOT NULL,
@@ -147,9 +146,6 @@ ALTER TABLE "Chapter" ADD CONSTRAINT "Chapter_courseId_fkey" FOREIGN KEY ("cours
 
 -- AddForeignKey
 ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_chapterId_fkey" FOREIGN KEY ("chapterId") REFERENCES "Chapter"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
