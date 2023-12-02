@@ -114,7 +114,7 @@ module.exports = {
 
       res.status(200).json({
         status: true,
-        message: "Get detail promotion successful",
+        message: "Promotion edited successfully",
         data: { updatedPromotion },
       });
     } catch (err) {
@@ -152,7 +152,7 @@ module.exports = {
 
       res.status(200).json({
         status: true,
-        message: "Get detail promotion successful",
+        message: "Promotion deleted successfully",
         data: { deletedPromotion },
       });
     } catch (err) {
