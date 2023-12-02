@@ -5,6 +5,6 @@ const checkRole = require("../middlewares/checkRole");
 
 router.get("/", Auth, checkRole(["user", "admin"]), getAllEnrollment);
 router.get("/:id", Auth, checkRole(["user", "admin"]), getDetailEnrollment);
-router.post("/:courseId/course", Auth, checkRole(["user", "admin"]), courseEnrollment);
+router.post("/:courseId/course", Auth, checkRole(["user"]), courseEnrollment);
 
 module.exports = router;
