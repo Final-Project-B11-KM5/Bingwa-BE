@@ -21,6 +21,8 @@ tags:
     description: Operations about Lesson
   - name: Enrollments
     description: Operations about Enrollment
+  - name: Promotions
+    description: Operations about Promotion
 paths:
   /users/register:
     post:
@@ -1244,6 +1246,230 @@ paths:
                   message:
                     type: string
                     example: "failed"
+  /promotions:
+    get:
+      tags:
+        - Promotions
+      operationId: get-all-promotions
+      summary: Get all promotions
+      description: Get all promotions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          promotions:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/PromotionModel"
+    post:
+      tags:
+        - Promotions
+      operationId: post-create-promotion
+      summary: Create promotion
+      description: Create promotion with the provided information.
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: "#/components/requestBodies/CreatePromotion"
+      responses:
+        "201":
+          description: Create promotion was successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newPromotion:
+                            $ref: "#/components/schemas/PromotionModel"
+  /promotions/{promotionId}:
+    get:
+      tags:
+        - Promotions
+      operationId: get-promotion-by-id
+      summary: get promotion by id
+      description: get promotion by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: promotionId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the promotion to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          promotion:
+                            allOf:
+                              - $ref: "#/components/schemas/PromotionModel"
+        "400":
+          description: Invalid Promotion ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+        "404":
+          description: Promotion Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+    put:
+      tags:
+        - Promotions
+      operationId: put-promotion-by-id
+      summary: Put promotion by id
+      description: Edit promotion by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: promotionId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the promotion to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/EditPromotion"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          updatedPromotion:
+                            $ref: "#/components/schemas/PromotionModel"
+        "400":
+          description: Invalid Promotion ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+        "404":
+          description: Promotion Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+    delete:
+      tags:
+        - Promotions
+      operationId: delete-promotion-by-id
+      summary: delete promotion by id
+      description: Delete promotion by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: promotionId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the promotion to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deletedPromotion:
+                            $ref: "#/components/schemas/PromotionModel"
+        "400":
+          description: Invalid Promotion ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+        "404":
+          description: Promotion Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
 components:
   schemas:
     BasicResponse:
@@ -1460,6 +1686,23 @@ components:
         courseId:
           type: integer
           example: 1
+    PromotionModel:
+      title: Promotion
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        discount:
+          type: number
+          format: float
+          example: 0.1
+        startDate:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        endDate:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
   requestBodies:
     Register:
       content:
@@ -1737,6 +1980,38 @@ components:
               chapterId:
                 type: integer
                 example: 1
+    CreatePromotion:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              discount:
+                type: number
+                format: float
+                example: 0.1
+              startDate:
+                type: string
+                example: "2023-12-01"
+              endDate:
+                type: string
+                example: "2023-11-30"
+    EditPromotion:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              discount:
+                type: number
+                format: float
+                example: 0.1
+              startDate:
+                type: string
+                example: "2023-12-01"
+              endDate:
+                type: string
+                example: "2023-11-30"
   securitySchemes:
     bearerAuth:
       type: http
