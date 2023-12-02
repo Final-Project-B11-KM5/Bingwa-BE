@@ -115,6 +115,18 @@ module.exports = {
         where: {
           id: Number(idCourse),
         },
+      });
+      if (!checkCourse) {
+        return res.status(404).json({
+          status: false,
+          message: `Course Not Found With Id ${idCourse}`,
+          data: null,
+        });
+      }
+      const detailCourse = await prisma.course.findUnique({
+        where: {
+          id: Number(idCourse),
+        },
         include: {
           lesson: {
             select: {
@@ -129,18 +141,6 @@ module.exports = {
           },
         },
       });
-      if (!checkCourse) {
-        return res.status(404).json({
-          status: false,
-          message: `Course Not Found With Id ${idCourse}`,
-          data: null,
-        });
-      }
-      const detailCourse = await prisma.course.findUnique({
-        where: {
-          id: Number(idCourse),
-        },
-      });
       res.status(200).json({
         status: true,
         message: ` Detail Kelas with id:${idCourse} successful`,
@@ -150,26 +150,38 @@ module.exports = {
       next(err);
     }
   },
-  getMyCourse: async (req,res,next) => {
+  getMyCourse: async (req, res, next) => {
     try {
-      const {email} = req.user
-
-      const {courses}= await prisma.user.findUnique({
-        where:{
-          email: email
+      const { email } = req.user;
+      const { enrollment } = await prisma.user.findUnique({
+        where: {
+          email: email,
         },
-       include:{
-        courses: true
-       }
-      })
-      
+        include: {
+          enrollment: {
+            select: {
+              Course: {
+                select: {
+                  id: true,
+                  courseName: true,
+                  isPremium: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      let courseUser = [];
+      enrollment.forEach((val) => {
+        courseUser.push(val["Course"]);
+      });
       res.json({
         status: true,
         message: "Success",
-        data: [...courses]
-      })
+        data: courseUser,
+      });
     } catch (error) {
-      next(error)
+      next(error);
     }
   },
   getCourse: async (req, res, next) => {
@@ -186,7 +198,10 @@ module.exports = {
           ...filterOptions[filter],
           where: {
             category: {
-              categoryName: typeof category !== "string" ? { in: [...category] } : { in: [category] },
+              categoryName:
+                typeof category !== "string"
+                  ? { in: [...category] }
+                  : { in: [category] },
             },
             ...(level && { level: level }),
           },
@@ -227,7 +242,12 @@ module.exports = {
           _count: { id: true },
         });
 
-        const paggination = getPagination(req, _count.id, Number(page), Number(limit));
+        const paggination = getPagination(
+          req,
+          _count.id,
+          Number(page),
+          Number(limit)
+        );
 
         res.status(200).json({
           status: true,
