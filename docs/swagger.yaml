@@ -1189,6 +1189,61 @@ paths:
                   message:
                     type: string
                     example: "failed"
+  /enrollments/{courseId}/course:
+    post:
+      tags:
+        - Enrollments
+      operationId: create-enrollment-by-course
+      summary: create enrollment by course
+      description: create enrollment by course
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the enrollment to retrieve.
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/EnrollmentModel"
+        "400":
+          description: User Already Enroll
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+        "404":
+          description: Enrollment Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
 components:
   schemas:
     BasicResponse:
