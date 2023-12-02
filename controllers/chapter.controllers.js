@@ -5,7 +5,7 @@ const createChapter = async (req, res, next) => {
   try {
     const { name, courseId } = req.body;
 
-    const chapter = await prisma.chapter.create({
+    const newChapter = await prisma.chapter.create({
       data: {
         name,
         courseId,
@@ -15,7 +15,7 @@ const createChapter = async (req, res, next) => {
     res.status(201).json({
       status: true,
       message: "Create Chapter Success",
-      data: chapter,
+      data: { newChapter },
     });
   } catch (error) {
     next(error);
@@ -24,12 +24,30 @@ const createChapter = async (req, res, next) => {
 
 const getChapters = async (req, res, next) => {
   try {
-    const chapters = await prisma.chapter.findMany();
+    const { search } = req.query;
+
+    const chapters = await prisma.chapter.findMany({
+      where: {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { lesson: { some: { lessonName: { contains: search, mode: "insensitive" } } } },
+          { course: { courseName: { contains: search, mode: "insensitive" } } },
+          { course: { category: { categoryName: { contains: search, mode: "insensitive" } } } },
+        ],
+      },
+      include: {
+        course: {
+          select: {
+            courseName: true,
+          },
+        },
+      },
+    });
 
     res.status(200).json({
       status: true,
       message: "Get chapters success",
-      data: chapters,
+      data: { chapters },
     });
   } catch (error) {
     next(error);
@@ -51,7 +69,7 @@ const getChapterById = async (req, res, next) => {
     res.status(201).json({
       status: true,
       message: "Get Detail chapter succes",
-      data: chapter,
+      data: { chapter },
     });
   } catch (error) {
     next(error);

@@ -29,7 +29,15 @@ module.exports = {
 
   getAllPromotions: async (req, res, next) => {
     try {
-      const promotions = await prisma.promotion.findMany();
+      const { search } = req.query;
+
+      const promotions = await prisma.promotion.findMany({
+        where: search
+          ? {
+              OR: [search && { discount: parseFloat(search) }, search && { startDate: { contains: search, mode: "insensitive" } }, search && { endDate: { contains: search, mode: "insensitive" } }].filter(Boolean),
+            }
+          : {},
+      });
 
       res.status(200).json({
         status: true,
