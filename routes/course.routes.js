@@ -5,13 +5,14 @@ const {
   deleteCourse,
   detailCourse,
   showAllCourse,
+  getMyCourse,
   getCourse,
-  showVidioByCourse
 } = require("../controllers/course.controllers");
 const Auth = require("../middlewares/authentication");
 const checkRole = require("../middlewares/checkRole");
 
 router.get("/", getCourse);
+router.get("/me",Auth, getMyCourse);
 router.post("/", Auth, checkRole(["admin"]), createCourse);
 // router.get("/", Auth, checkRole(["admin"]), showAllCourse); // USER nanti gabsia lihat kelas apa aja dong sblm login
 router.get("/:idCourse", detailCourse);
@@ -19,5 +20,4 @@ router.put("/:idCourse", Auth, checkRole(["admin"]), editCourse);
 router.delete("/:idCourse", Auth, checkRole(["admin"]), deleteCourse);
 
 // display videos in the course
-router.get("/:idCourse/vidio", showVidioByCourse);
 module.exports = router;

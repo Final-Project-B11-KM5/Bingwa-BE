@@ -127,6 +127,19 @@ module.exports = {
         where: {
           id: Number(idCourse),
         },
+        include: {
+          lesson: {
+            select: {
+              lessonName: true,
+              videoURL: true,
+              chapter: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       });
       res.status(200).json({
         status: true,
@@ -137,46 +150,38 @@ module.exports = {
       next(err);
     }
   },
-  showVidioByCourse: async (req, res, next) => {
+  getMyCourse: async (req, res, next) => {
     try {
-      const { idCourse } = req.params;
-      const findCourse = await prisma.course.findFirst({
+      const { email } = req.user;
+      const { enrollment } = await prisma.user.findUnique({
         where: {
-          id: Number(idCourse),
-        },
-      });
-      if (!findCourse) {
-        return res.status(404).json({
-          status: false,
-          message: `Course Not Found With Id ${idCourse}`,
-          data: null,
-        });
-      }
-
-      let filterVidio = await prisma.vidio.findMany({
-        where: {
-          idCourse,
+          email: email,
         },
         include: {
-          Course: {
+          enrollment: {
             select: {
-              courseName: true,
-            },
-          },
-          Chapter: {
-            select: {
-              name: true,
+              Course: {
+                select: {
+                  id: true,
+                  courseName: true,
+                  isPremium: true,
+                },
+              },
             },
           },
         },
       });
-      res.status(200).json({
-        status: true,
-        message: "Show All Vidio in Course ",
-        data: filterVidio,
+      let courseUser = [];
+      enrollment.forEach((val) => {
+        courseUser.push(val["Course"]);
       });
-    } catch (err) {
-      next(err);
+      res.json({
+        status: true,
+        message: "Success",
+        data: courseUser,
+      });
+    } catch (error) {
+      next(error);
     }
   },
   getCourse: async (req, res, next) => {
@@ -185,7 +190,7 @@ module.exports = {
       if (filter || category || level) {
         const filterOptions = {
           populer: { orderBy: { rating: "desc" } },
-          terbaru: { orderBy: { release: "desc" } },
+          terbaru: { orderBy: { createdAt: "desc" } },
           promo: { where: { promotionId: { not: null } } },
         };
         console.log(typeof category === "string");
@@ -193,7 +198,10 @@ module.exports = {
           ...filterOptions[filter],
           where: {
             category: {
-              categoryName: typeof category !== "string" ? { in: [...category] } : { in: [category] },
+              categoryName:
+                typeof category !== "string"
+                  ? { in: [...category] }
+                  : { in: [category] },
             },
             ...(level && { level: level }),
           },
@@ -234,7 +242,12 @@ module.exports = {
           _count: { id: true },
         });
 
-        const paggination = getPagination(req, _count.id, Number(page), Number(limit));
+        const paggination = getPagination(
+          req,
+          _count.id,
+          Number(page),
+          Number(limit)
+        );
 
         res.status(200).json({
           status: true,

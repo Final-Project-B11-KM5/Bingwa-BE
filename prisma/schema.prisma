@@ -19,6 +19,7 @@ model User {
   otp          String
   isVerified   Boolean        @default(false)
   role         String         @default("user")
+  courses      Course[]       @relation("UserToCourse")
   userProfile  UserProfile?
   notification Notification[]
   enrollment   Enrollment[]
@@ -57,6 +58,8 @@ model Course {
   duration         String
   chapter          Chapter[]
   enrollment       Enrollment[]
+  lesson           Lesson[]
+  user             User[]       @relation("UserToCourse")
   createdAt        DateTime     @default(now())
   categoryId       Int
   category         Category     @relation(fields: [categoryId], references: [id])
@@ -81,13 +84,15 @@ model Lesson {
   updatedAt  DateTime @default(now())
   chapterId  Int
   chapter    Chapter  @relation(fields: [chapterId], references: [id])
+  Course     Course?  @relation(fields: [courseId], references: [id])
+  courseId   Int?
 }
 
 model Promotion {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   discount  Decimal
-  startDate DateTime?
-  endDate   DateTime?
+  startDate String
+  endDate   String
   course    Course[]
 }
 

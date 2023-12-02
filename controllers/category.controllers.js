@@ -22,11 +22,16 @@ module.exports = {
 
   showCategory: async (req, res, next) => {
     try {
-      let allCategory = await prisma.category.findMany();
+      const { search } = req.query;
+
+      const categories = await prisma.category.findMany({
+        where: search ? { categoryName: { contains: search, mode: "insensitive" } } : {},
+      });
+
       return res.status(200).json({
         status: true,
         message: "show all category successful",
-        data: allCategory,
+        data: { categories },
       });
     } catch (err) {
       next(err);

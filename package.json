@@ -5,7 +5,10 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "migrate": "prisma migrate dev",
+    "db-pull": "prisma db pull",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
