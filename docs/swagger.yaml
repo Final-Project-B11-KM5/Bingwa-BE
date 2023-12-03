@@ -1759,6 +1759,30 @@ components:
         role:
           type: string
           example: "user"
+        userProfile:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            profilePicture:
+              type: string
+              example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
+            fullName:
+              type: string
+              example: "Budi Cahyono"
+            phoneNumber:
+              type: string
+              example: "08123456789"
+            city:
+              type: string
+              example: "Vancouver"
+            country:
+              type: string
+              example: "Canada"
+            userId:
+              type: integer
+              example: 1
     UserProfileModel:
       title: User Profile
       type: object
