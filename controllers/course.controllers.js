@@ -5,7 +5,15 @@ const getPagination = require("../utils/getPaggination");
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId } = req.body;
+      const { price, isPremium, categoryId, promotionId, averageRating } = req.body;
+
+      if (averageRating !== undefined) {
+        return res.status(400).json({
+          status: false,
+          message: "averageRating cannot be provided during course creation",
+          data: null,
+        });
+      }
 
       if (!isPremium && price) {
         return res.status(400).json({
@@ -60,6 +68,9 @@ module.exports = {
   editCourse: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
+
+      const { averageRating } = req.body;
+
       const checkCourse = await prisma.course.findFirst({
         where: {
           id: Number(idCourse),
@@ -72,7 +83,16 @@ module.exports = {
           data: null,
         });
       }
-      let editCourse = await prisma.course.update({
+
+      if (averageRating !== undefined) {
+        return res.status(400).json({
+          status: false,
+          message: "averageRating cannot be provided during course creation",
+          data: null,
+        });
+      }
+
+      let editedCourse = await prisma.course.update({
         where: {
           id: Number(idCourse),
         },
@@ -83,7 +103,7 @@ module.exports = {
       return res.status(200).json({
         status: true,
         message: "Update Kelas successful",
-        data: editCourse,
+        data: { editedCourse },
       });
     } catch (err) {
       next(err);
@@ -93,7 +113,7 @@ module.exports = {
   deleteCourse: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
-      let deleteCourse = await prisma.course.delete({
+      let deletedCourse = await prisma.course.delete({
         where: {
           id: Number(idCourse),
         },
@@ -101,7 +121,7 @@ module.exports = {
       res.status(200).json({
         status: true,
         message: "delete Kelas successful",
-        data: deleteCourse,
+        data: { deletedCourse },
       });
     } catch (err) {
       next(err);
@@ -123,18 +143,17 @@ module.exports = {
           data: null,
         });
       }
-      const detailCourse = await prisma.course.findUnique({
+      const course = await prisma.course.findUnique({
         where: {
           id: Number(idCourse),
         },
         include: {
-          lesson: {
-            select: {
-              lessonName: true,
-              videoURL: true,
-              chapter: {
+          chapter: {
+            include: {
+              lesson: {
                 select: {
-                  name: true,
+                  lessonName: true,
+                  videoURL: true,
                 },
               },
             },
@@ -144,12 +163,13 @@ module.exports = {
       res.status(200).json({
         status: true,
         message: ` Detail Kelas with id:${idCourse} successful`,
-        data: detailCourse,
+        data: { course },
       });
     } catch (err) {
       next(err);
     }
   },
+
   getMyCourse: async (req, res, next) => {
     try {
       const { email } = req.user;
@@ -198,10 +218,7 @@ module.exports = {
           ...filterOptions[filter],
           where: {
             category: {
-              categoryName:
-                typeof category !== "string"
-                  ? { in: [...category] }
-                  : { in: [category] },
+              categoryName: typeof category !== "string" ? { in: [...category] } : { in: [category] },
             },
             ...(level && { level: level }),
           },
@@ -242,12 +259,7 @@ module.exports = {
           _count: { id: true },
         });
 
-        const paggination = getPagination(
-          req,
-          _count.id,
-          Number(page),
-          Number(limit)
-        );
+        const paggination = getPagination(req, _count.id, Number(page), Number(limit));
 
         res.status(200).json({
           status: true,

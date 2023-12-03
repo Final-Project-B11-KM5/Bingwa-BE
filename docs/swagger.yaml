@@ -468,9 +468,13 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          categories:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/CategoryModel"
     post:
       tags:
         - Categories
@@ -492,7 +496,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          newCategory:
+                            $ref: "#/components/schemas/CategoryModel"
   /categories/{categoryId}:
     put:
       tags:
@@ -522,7 +529,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          editedCategory:
+                            $ref: "#/components/schemas/CategoryModel"
     delete:
       tags:
         - Categories
@@ -549,7 +559,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          deletedCategory:
+                            $ref: "#/components/schemas/CategoryModel"
   /courses:
     get:
       tags:
@@ -625,6 +638,64 @@ paths:
                     type: string
                     example: "failed"
   /courses/{courseId}:
+    get:
+      tags:
+        - Courses
+      operationId: get-course-by-id
+      summary: get course by id
+      description: get course by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          course:
+                            allOf:
+                              - $ref: "#/components/schemas/CourseModel"
+                              - type: object
+                                properties:
+                                  chapter:
+                                    type: array
+                                    items:
+                                      allOf:
+                                        - $ref: "#/components/schemas/ChapterModel"
+                                        - type: object
+                                          properties:
+                                            lesson:
+                                              type: array
+                                              items:
+                                                $ref: "#/components/schemas/LessonModel"
+
+        "400":
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
     put:
       tags:
         - Courses
@@ -653,48 +724,11 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CourseModel"
+                        type: object
+                        properties:
+                          editedCourse:
+                            $ref: "#/components/schemas/CourseModel"
         "404":
-          description: Course Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: "failed"
-    get:
-      tags:
-        - Courses
-      operationId: get-course-by-id
-      summary: get course by id
-      description: get course by id
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: courseId
-          schema:
-            type: integer
-          required: true
-          description: The ID of the course to retrieve.
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: object
-                    properties:
-                      data:
-                        $ref: "#/components/schemas/CourseModel"
-        "400":
           description: Course Not Found
           content:
             application/json:
@@ -733,7 +767,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CourseModel"
+                        type: object
+                        properties:
+                          deletedCourse:
+                            $ref: "#/components/schemas/CourseModel"
   /chapters:
     get:
       tags:
@@ -752,9 +789,13 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          chapters:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/ChapterModel"
     post:
       tags:
         - Chapters
@@ -776,7 +817,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          newChapter:
+                            $ref: "#/components/schemas/ChapterModel"
   /chapters/{chapterId}:
     get:
       tags:
@@ -802,7 +846,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          chapter:
+                            $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Chapter Not Found
           content:
@@ -844,7 +891,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          updatedChapter:
+                            $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Chapter Not Found
           content:
@@ -884,7 +934,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          deletedChapter:
+                            $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Chapter Not Found
           content:
@@ -922,6 +975,11 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/LessonModel"
+                              type: object
+                              properties:
+                                chapter:
+                                  $ref: "#/components/schemas/ChapterModel"
+
     post:
       tags:
         - Lessons
@@ -978,6 +1036,10 @@ paths:
                         properties:
                           lesson:
                             $ref: "#/components/schemas/LessonModel"
+                            type: object
+                            properties:
+                              chapter:
+                                $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Lesson Not Found
           content:
@@ -1178,6 +1240,54 @@ paths:
                                                       type: array
                                                       items:
                                                         $ref: "#/components/schemas/LessonModel"
+        "404":
+          description: Enrollment Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /enrollments/{courseId}:
+    put:
+      tags:
+        - Enrollments
+      operationId: put-enrollment-by-courseId
+      summary: put enrollment by courseId
+      description: put enrollment by courseId
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the enrollment to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/RatingEnrollment"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          updatedEnrollment:
+                            $ref: "#/components/schemas/EnrollmentModel"
+                          updatedCourse:
+                            $ref: "#/components/schemas/CourseModel"
         "404":
           description: Enrollment Not Found
           content:
@@ -1590,7 +1700,7 @@ components:
         price:
           type: integer
           example: 250000
-        rating:
+        averageRating:
           type: integer
           example: 5
         level:
@@ -1604,7 +1714,7 @@ components:
           example: "Anda yang ingin memahami poin penting design system"
         learningMaterial:
           type: string
-          example: "Anda yang ingin latihan membangun design system"
+          example: "Mempunyai akun Figma atau Install Adobe XD Menggunakan internet minimal kecepatan 2Mbps Belajar di tempat yang nyaman"
         mentor:
           type: string
           example: "Simon Doe"
@@ -1842,9 +1952,6 @@ components:
               price:
                 type: integer
                 example: 250000
-              rating:
-                type: integer
-                example: 5
               level:
                 type: string
                 example: "Begginer Level"
@@ -1856,7 +1963,7 @@ components:
                 example: "Anda yang ingin memahami poin penting design system"
               learningMaterial:
                 type: string
-                example: "Anda yang ingin latihan membangun design system"
+                example: "Mempunyai akun Figma atau Install Adobe XD Menggunakan internet minimal kecepatan 2Mbps Belajar di tempat yang nyaman"
               mentor:
                 type: string
                 example: "Simon Doe"
@@ -1890,9 +1997,6 @@ components:
               price:
                 type: integer
                 example: 250000
-              rating:
-                type: integer
-                example: 5
               level:
                 type: string
                 example: "Begginer Level"
@@ -1904,7 +2008,7 @@ components:
                 example: "Anda yang ingin memahami poin penting design system"
               learningMaterial:
                 type: string
-                example: "Anda yang ingin latihan membangun design system"
+                example: "Mempunyai akun Figma atau Install Adobe XD Menggunakan internet minimal kecepatan 2Mbps Belajar di tempat yang nyaman"
               mentor:
                 type: string
                 example: "Simon Doe"
@@ -1980,6 +2084,15 @@ components:
               chapterId:
                 type: integer
                 example: 1
+    RatingEnrollment:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              userRating:
+                type: integer
+                example: 5
     CreatePromotion:
       content:
         application/json:

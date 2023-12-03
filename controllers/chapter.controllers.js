@@ -76,7 +76,7 @@ const getChapterById = async (req, res, next) => {
   }
 };
 
-const updateCHapter = async (req, res, next) => {
+const updateChapter = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -88,7 +88,7 @@ const updateCHapter = async (req, res, next) => {
 
     if (!isExistChapter) return res.status(404).json({ status: false, message: "chapter not found", data: null });
 
-    const chapter = await prisma.chapter.update({
+    const updatedChapter = await prisma.chapter.update({
       where: {
         id: Number(id),
       },
@@ -100,7 +100,7 @@ const updateCHapter = async (req, res, next) => {
     res.status(200).json({
       status: true,
       message: "Chapter updated success",
-      data: chapter,
+      data: { updatedChapter },
     });
   } catch (error) {
     next(error);
@@ -119,7 +119,7 @@ const deleteChapter = async (req, res, next) => {
 
     if (!isExistChapter) return res.status(404).json({ status: false, message: "chapter not found", data: null });
 
-    await prisma.chapter.delete({
+    const deletedChapter = await prisma.chapter.delete({
       where: {
         id: Number(id),
       },
@@ -128,6 +128,7 @@ const deleteChapter = async (req, res, next) => {
     res.status(200).json({
       status: true,
       message: "Delete chpater success",
+      data: { deletedChapter },
     });
   } catch (error) {
     next(error);
@@ -138,6 +139,6 @@ module.exports = {
   createChapter,
   getChapters,
   getChapterById,
-  updateCHapter,
+  updateChapter,
   deleteChapter,
 };
