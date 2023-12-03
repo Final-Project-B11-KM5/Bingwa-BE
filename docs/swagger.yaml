@@ -457,6 +457,12 @@ paths:
       operationId: get-all-categories
       summary: Get all categories
       description: Get all categories
+      parameters:
+        - name: search
+          in: query
+          description: search for get categories
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -570,6 +576,22 @@ paths:
       operationId: get-all-courses
       summary: Get all courses
       description: Get all courses
+      parameters:
+        - name: filter
+          in: query
+          description: filter for get courses
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: category for get courses
+          schema:
+            type: string
+        - name: level
+          in: query
+          description: level for get courses
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -778,6 +800,12 @@ paths:
       operationId: get-all-chapters
       summary: Get all chapters
       description: Get all chapters
+      parameters:
+        - name: search
+          in: query
+          description: search for get chapters
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -979,7 +1007,6 @@ paths:
                               properties:
                                 chapter:
                                   $ref: "#/components/schemas/ChapterModel"
-
     post:
       tags:
         - Lessons
@@ -1005,6 +1032,53 @@ paths:
                         properties:
                           newLesson:
                             $ref: "#/components/schemas/LessonModel"
+  /lessons/search:
+    get:
+      tags:
+        - Lessons
+      operationId: get-lessons
+      summary: Get lessons
+      description: Get lessons
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chapter
+          in: query
+          description: chapter for get lessons``
+          required: true
+          schema:
+            type: string
+        - name: lesson
+          in: query
+          description: lesson for get lessons``
+          schema:
+            type: string
+        - name: course
+          in: query
+          description: course for get lessons``
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          lessons:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/LessonModel"
+                              type: object
+                              properties:
+                                chapter:
+                                  $ref: "#/components/schemas/ChapterModel"
   /lessons/{lessonId}:
     get:
       tags:
@@ -1128,6 +1202,55 @@ paths:
                         properties:
                           deletedLesson:
                             $ref: "#/components/schemas/LessonModel"
+        "404":
+          description: Lesson Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /lessons/{courseId}/course:
+    get:
+      tags:
+        - Lessons
+      operationId: get-lessons-by-course
+      summary: get lessons by course
+      description: get lessons by course
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/ChapterModel"
+                            - type: object
+                              properties:
+                                lesson:
+                                  type: array
+                                  items:
+                                    allOf:
+                                      - $ref: "#/components/schemas/LessonModel"
         "404":
           description: Lesson Not Found
           content:
@@ -1365,6 +1488,12 @@ paths:
       description: Get all promotions
       security:
         - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: search for get promotions
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
