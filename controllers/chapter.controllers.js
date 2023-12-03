@@ -66,7 +66,7 @@ const getChapterById = async (req, res, next) => {
 
     if (!chapter) return res.status(404).json({ status: false, message: "chapter not found", data: null });
 
-    res.status(201).json({
+    res.status(200).json({
       status: true,
       message: "Get Detail chapter succes",
       data: { chapter },
