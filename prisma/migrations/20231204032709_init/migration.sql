@@ -4,6 +4,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "otp" TEXT NOT NULL,
+    "otpCreatedAt" TIMESTAMP(3) NOT NULL,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "role" TEXT NOT NULL DEFAULT 'user',
 
