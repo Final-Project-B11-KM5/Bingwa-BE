@@ -362,7 +362,14 @@ paths:
                         type: object
                         properties:
                           user:
-                            $ref: "#/components/schemas/UserModel"
+                            allOf:
+                              - $ref: "#/components/schemas/UserModel"
+                              - type: object
+                                properties:
+                                  userProfile:
+                                    allOf:
+                                      - $ref: "#/components/schemas/UserProfileModel"
+
         "404":
           description: User not found
           content:
