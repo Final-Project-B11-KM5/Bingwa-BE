@@ -24,6 +24,7 @@ model User {
   userProfile  UserProfile?
   notification Notification[]
   enrollment   Enrollment[]
+  payment      Payment[]
 }
 
 model UserProfile {
@@ -59,6 +60,7 @@ model Course {
   duration         String
   chapter          Chapter[]
   enrollment       Enrollment[]
+  payment          Payment[]
   user             User[]       @relation("UserToCourse")
   createdAt        DateTime     @default(now())
   categoryId       Int
@@ -112,4 +114,19 @@ model Enrollment {
   user       User     @relation(fields: [userId], references: [id])
   courseId   Int
   course     Course   @relation(fields: [courseId], references: [id])
+  paymentId  Int?     @unique
+  payment    Payment? @relation(fields: [paymentId], references: [id])
+}
+
+model Payment {
+  id         Int         @id @default(autoincrement())
+  amount     Int
+  status     String      @default("Unpaid")
+  createAt   DateTime    @default(now())
+  updatedAt  DateTime    @default(now())
+  enrollment Enrollment?
+  userId     Int
+  user       User        @relation(fields: [userId], references: [id])
+  courseId   Int
+  course     Course      @relation(fields: [courseId], references: [id])
 }
