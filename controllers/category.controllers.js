@@ -13,7 +13,7 @@ module.exports = {
       return res.status(201).json({
         status: true,
         message: "create category successful",
-        data: newCategory,
+        data: { newCategory },
       });
     } catch (err) {
       next(err);
@@ -43,7 +43,7 @@ module.exports = {
       const { idCategory } = req.params;
       const { categoryName } = req.body;
 
-      let editCategory = await prisma.category.update({
+      let editedCategory = await prisma.category.update({
         where: {
           id: Number(idCategory),
         },
@@ -54,7 +54,7 @@ module.exports = {
       res.status(200).json({
         status: true,
         message: "update category successful",
-        data: editCategory,
+        data: { editedCategory },
       });
     } catch (err) {
       next(err);
@@ -64,7 +64,7 @@ module.exports = {
   deleteCategory: async (req, res, next) => {
     try {
       const { idCategory } = req.params;
-      let deleteCategory = await prisma.category.delete({
+      let deletedCategory = await prisma.category.delete({
         where: {
           id: Number(idCategory),
         },
@@ -72,7 +72,7 @@ module.exports = {
       res.status(200).json({
         status: true,
         message: "delete category successful",
-        data: deleteCategory,
+        data: { deletedCategory },
       });
     } catch (err) {
       next(err);

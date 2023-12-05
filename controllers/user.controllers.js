@@ -51,7 +51,9 @@ module.exports = {
         });
       }
 
-      const otp = generatedOTP();
+      const otpObject = generatedOTP();
+      otp = otpObject.code;
+      otpCreatedAt = otpObject.createdAt;
 
       let encryptedPassword = await bcrypt.hash(password, 10);
       let newUser = await prisma.user.create({
@@ -59,6 +61,7 @@ module.exports = {
           email,
           password: encryptedPassword,
           otp,
+          otpCreatedAt,
         },
       });
 
@@ -133,6 +136,7 @@ module.exports = {
   verifyOtp: async (req, res, next) => {
     try {
       let { email, otp } = req.body;
+      const otpExpired = 30 * 60 * 1000;
 
       let user = await prisma.user.findUnique({
         where: { email },
@@ -150,6 +154,17 @@ module.exports = {
         return res.status(401).json({
           status: false,
           message: "Invalid OTP",
+          data: null,
+        });
+      }
+
+      const currentTime = new Date();
+      const isExpired = currentTime - user.otpCreatedAt > otpExpired;
+
+      if (isExpired) {
+        return res.status(400).json({
+          status: false,
+          message: "OTP has expired. Please request a new one.",
           data: null,
         });
       }
@@ -173,14 +188,16 @@ module.exports = {
     try {
       const { email } = req.body;
 
-      const otp = generatedOTP();
+      const otpObject = generatedOTP();
+      otp = otpObject.code;
+      otpCreatedAt = otpObject.createdAt;
 
       const html = await nodemailer.getHtml("verify-otp.ejs", { email, otp });
       nodemailer.sendEmail(email, "Email Activation", html);
 
       const updateOtp = await prisma.user.update({
         where: { email },
-        data: { otp },
+        data: { otp, otpCreatedAt },
       });
 
       res.status(200).json({
@@ -289,6 +306,9 @@ module.exports = {
     try {
       const user = await prisma.user.findUnique({
         where: { id: Number(req.user.id) },
+        include: {
+          userProfile: true,
+        },
       });
 
       if (!user) {

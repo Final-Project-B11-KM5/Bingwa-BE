@@ -22,7 +22,7 @@ const findLessonById = async (lessonId) => {
 
 const createLesson = async (req, res, next) => {
   try {
-    const { lessonName, videoURL, chapterId, courseId } = req.body;
+    const { lessonName, videoURL, chapterId } = req.body;
 
     const chapter = await findChapterById(chapterId);
 
@@ -35,7 +35,7 @@ const createLesson = async (req, res, next) => {
     }
 
     const newLesson = await prisma.lesson.create({
-      data: { lessonName, videoURL, chapterId, courseId },
+      data: { lessonName, videoURL, chapterId },
     });
 
     res.status(201).json({
@@ -173,26 +173,28 @@ const searchLesson = async (req, res, next) => {
     if (chapter || lesson || course) {
       let filterLesson = await prisma.lesson.findMany({
         where: {
-          AND: [
+          OR: [
             {
               lessonName: {
-                contains: lesson ,
+                contains: lesson,
                 mode: "insensitive",
               },
             },
             {
               chapter: {
                 name: {
-                  contains: chapter ,
+                  contains: chapter,
                   mode: "insensitive",
                 },
               },
             },
             {
-              Course: {
-                courseName: {
-                  contains: course ,
-                  mode: "insensitive",
+              chapter: {
+                course: {
+                  courseName: {
+                    contains: course,
+                    mode: "insensitive",
+                  },
                 },
               },
             },
@@ -200,20 +202,19 @@ const searchLesson = async (req, res, next) => {
         },
         include: {
           chapter: {
-            select: {
-              name: true,
-            },
-          },
-          Course: {
-            select: {
-              courseName: true,
+            include: {
+              course: {
+                select: {
+                  courseName: true,
+                },
+              },
             },
           },
         },
       });
       return res.status(200).json({
         status: true,
-        message: "Succes Filter Or Search Vidio",
+        message: "Success Filter Or Search Video",
         data: filterLesson,
       });
     }

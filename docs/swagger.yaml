@@ -6,6 +6,7 @@ info:
   version: 1.0.0
 servers:
   - url: http://localhost:3000/api/v1
+  - url: https://bingwa-b11.vercel.app/api/v1
 tags:
   - name: Users
     description: Operations about user
@@ -122,6 +123,9 @@ paths:
                               otp:
                                 type: string
                                 example: "012345"
+                              otpCreatedAt:
+                                type: string
+                                example: "2023-12-04T03:09:21.254Z"
                               isVerified:
                                 type: boolean
                                 example: true
@@ -194,6 +198,9 @@ paths:
                               otp:
                                 type: string
                                 example: "012345"
+                              otpCreatedAt:
+                                type: string
+                                example: "2023-12-04T03:09:21.254Z"
                               isVerified:
                                 type: boolean
                                 example: true
@@ -356,7 +363,14 @@ paths:
                         type: object
                         properties:
                           user:
-                            $ref: "#/components/schemas/UserModel"
+                            allOf:
+                              - $ref: "#/components/schemas/UserModel"
+                              - type: object
+                                properties:
+                                  userProfile:
+                                    allOf:
+                                      - $ref: "#/components/schemas/UserProfileModel"
+
         "404":
           description: User not found
           content:
@@ -457,6 +471,12 @@ paths:
       operationId: get-all-categories
       summary: Get all categories
       description: Get all categories
+      parameters:
+        - name: search
+          in: query
+          description: search for get categories
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -468,9 +488,13 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          categories:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/CategoryModel"
     post:
       tags:
         - Categories
@@ -492,7 +516,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          newCategory:
+                            $ref: "#/components/schemas/CategoryModel"
   /categories/{categoryId}:
     put:
       tags:
@@ -522,7 +549,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          editedCategory:
+                            $ref: "#/components/schemas/CategoryModel"
     delete:
       tags:
         - Categories
@@ -549,7 +579,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CategoryModel"
+                        type: object
+                        properties:
+                          deletedCategory:
+                            $ref: "#/components/schemas/CategoryModel"
   /courses:
     get:
       tags:
@@ -557,6 +590,22 @@ paths:
       operationId: get-all-courses
       summary: Get all courses
       description: Get all courses
+      parameters:
+        - name: filter
+          in: query
+          description: filter for get courses
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: category for get courses
+          schema:
+            type: string
+        - name: level
+          in: query
+          description: level for get courses
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -625,6 +674,64 @@ paths:
                     type: string
                     example: "failed"
   /courses/{courseId}:
+    get:
+      tags:
+        - Courses
+      operationId: get-course-by-id
+      summary: get course by id
+      description: get course by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          course:
+                            allOf:
+                              - $ref: "#/components/schemas/CourseModel"
+                              - type: object
+                                properties:
+                                  chapter:
+                                    type: array
+                                    items:
+                                      allOf:
+                                        - $ref: "#/components/schemas/ChapterModel"
+                                        - type: object
+                                          properties:
+                                            lesson:
+                                              type: array
+                                              items:
+                                                $ref: "#/components/schemas/LessonModel"
+
+        "400":
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
     put:
       tags:
         - Courses
@@ -653,48 +760,11 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CourseModel"
+                        type: object
+                        properties:
+                          editedCourse:
+                            $ref: "#/components/schemas/CourseModel"
         "404":
-          description: Course Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: "failed"
-    get:
-      tags:
-        - Courses
-      operationId: get-course-by-id
-      summary: get course by id
-      description: get course by id
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: courseId
-          schema:
-            type: integer
-          required: true
-          description: The ID of the course to retrieve.
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: object
-                    properties:
-                      data:
-                        $ref: "#/components/schemas/CourseModel"
-        "400":
           description: Course Not Found
           content:
             application/json:
@@ -733,7 +803,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/CourseModel"
+                        type: object
+                        properties:
+                          deletedCourse:
+                            $ref: "#/components/schemas/CourseModel"
   /chapters:
     get:
       tags:
@@ -741,6 +814,12 @@ paths:
       operationId: get-all-chapters
       summary: Get all chapters
       description: Get all chapters
+      parameters:
+        - name: search
+          in: query
+          description: search for get chapters
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -752,9 +831,13 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          chapters:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/ChapterModel"
     post:
       tags:
         - Chapters
@@ -776,7 +859,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          newChapter:
+                            $ref: "#/components/schemas/ChapterModel"
   /chapters/{chapterId}:
     get:
       tags:
@@ -802,7 +888,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          chapter:
+                            $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Chapter Not Found
           content:
@@ -844,7 +933,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          updatedChapter:
+                            $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Chapter Not Found
           content:
@@ -884,7 +976,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/ChapterModel"
+                        type: object
+                        properties:
+                          deletedChapter:
+                            $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Chapter Not Found
           content:
@@ -922,6 +1017,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/LessonModel"
+                              type: object
+                              properties:
+                                chapter:
+                                  $ref: "#/components/schemas/ChapterModel"
     post:
       tags:
         - Lessons
@@ -947,6 +1046,53 @@ paths:
                         properties:
                           newLesson:
                             $ref: "#/components/schemas/LessonModel"
+  /lessons/search:
+    get:
+      tags:
+        - Lessons
+      operationId: get-lessons
+      summary: Get lessons
+      description: Get lessons
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chapter
+          in: query
+          description: chapter for get lessons``
+          required: true
+          schema:
+            type: string
+        - name: lesson
+          in: query
+          description: lesson for get lessons``
+          schema:
+            type: string
+        - name: course
+          in: query
+          description: course for get lessons``
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          lessons:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/LessonModel"
+                              type: object
+                              properties:
+                                chapter:
+                                  $ref: "#/components/schemas/ChapterModel"
   /lessons/{lessonId}:
     get:
       tags:
@@ -978,6 +1124,10 @@ paths:
                         properties:
                           lesson:
                             $ref: "#/components/schemas/LessonModel"
+                            type: object
+                            properties:
+                              chapter:
+                                $ref: "#/components/schemas/ChapterModel"
         "404":
           description: Lesson Not Found
           content:
@@ -1066,6 +1216,55 @@ paths:
                         properties:
                           deletedLesson:
                             $ref: "#/components/schemas/LessonModel"
+        "404":
+          description: Lesson Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /lessons/{courseId}/course:
+    get:
+      tags:
+        - Lessons
+      operationId: get-lessons-by-course
+      summary: get lessons by course
+      description: get lessons by course
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: "#/components/schemas/ChapterModel"
+                            - type: object
+                              properties:
+                                lesson:
+                                  type: array
+                                  items:
+                                    allOf:
+                                      - $ref: "#/components/schemas/LessonModel"
         "404":
           description: Lesson Not Found
           content:
@@ -1191,6 +1390,54 @@ paths:
                   message:
                     type: string
                     example: "failed"
+  /enrollments/{courseId}:
+    put:
+      tags:
+        - Enrollments
+      operationId: put-enrollment-by-courseId
+      summary: put enrollment by courseId
+      description: put enrollment by courseId
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the enrollment to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/RatingEnrollment"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          updatedEnrollment:
+                            $ref: "#/components/schemas/EnrollmentModel"
+                          updatedCourse:
+                            $ref: "#/components/schemas/CourseModel"
+        "404":
+          description: Enrollment Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
   /enrollments/{courseId}/course:
     post:
       tags:
@@ -1255,6 +1502,12 @@ paths:
       description: Get all promotions
       security:
         - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: search for get promotions
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -1514,6 +1767,9 @@ components:
         otp:
           type: string
           example: "012345"
+        otpCreatedAt:
+          type: string
+          example: "2023-12-04T03:09:21.254Z"
         isVerified:
           type: boolean
           example: false
@@ -1590,7 +1846,7 @@ components:
         price:
           type: integer
           example: 250000
-        rating:
+        averageRating:
           type: integer
           example: 5
         level:
@@ -1604,7 +1860,7 @@ components:
           example: "Anda yang ingin memahami poin penting design system"
         learningMaterial:
           type: string
-          example: "Anda yang ingin latihan membangun design system"
+          example: "Mempunyai akun Figma atau Install Adobe XD Menggunakan internet minimal kecepatan 2Mbps Belajar di tempat yang nyaman"
         mentor:
           type: string
           example: "Simon Doe"
@@ -1842,9 +2098,6 @@ components:
               price:
                 type: integer
                 example: 250000
-              rating:
-                type: integer
-                example: 5
               level:
                 type: string
                 example: "Begginer Level"
@@ -1856,7 +2109,7 @@ components:
                 example: "Anda yang ingin memahami poin penting design system"
               learningMaterial:
                 type: string
-                example: "Anda yang ingin latihan membangun design system"
+                example: "Mempunyai akun Figma atau Install Adobe XD Menggunakan internet minimal kecepatan 2Mbps Belajar di tempat yang nyaman"
               mentor:
                 type: string
                 example: "Simon Doe"
@@ -1890,9 +2143,6 @@ components:
               price:
                 type: integer
                 example: 250000
-              rating:
-                type: integer
-                example: 5
               level:
                 type: string
                 example: "Begginer Level"
@@ -1904,7 +2154,7 @@ components:
                 example: "Anda yang ingin memahami poin penting design system"
               learningMaterial:
                 type: string
-                example: "Anda yang ingin latihan membangun design system"
+                example: "Mempunyai akun Figma atau Install Adobe XD Menggunakan internet minimal kecepatan 2Mbps Belajar di tempat yang nyaman"
               mentor:
                 type: string
                 example: "Simon Doe"
@@ -1980,6 +2230,15 @@ components:
               chapterId:
                 type: integer
                 example: 1
+    RatingEnrollment:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              userRating:
+                type: integer
+                example: 5
     CreatePromotion:
       content:
         application/json:
