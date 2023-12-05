@@ -3,7 +3,7 @@ name: Deploy PRODUCTION Environment
 on:
   push:
     branches:
-      - production
+      - main
 
 jobs:
   deploy:
