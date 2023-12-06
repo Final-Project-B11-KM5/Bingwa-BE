@@ -4,8 +4,35 @@ const prisma = new PrismaClient();
 module.exports = {
   updateTracking: async (req, res, next) => {
     try {
-      const { idLessons } = req.params;
-      const { id } = req.user;
+      const lessonId = req.params.lessonId;
+
+      const lesson = await prisma.lesson.findUnique({
+        where: { id: Number(lessonId) },
+      });
+
+      if (!lesson) {
+        return res.status(404).json({
+          status: false,
+          message: "Lesson not found",
+          data: null,
+        });
+      }
+
+      const tracking = await prisma.tracking.update({
+        where: {
+          userId: Number(req.user.id),
+          lessonId: Number(lessonId),
+        },
+        data: {
+          status: true,
+        },
+      });
+
+      res.status(200).json({
+        status: true,
+        message: "Tracking updated successfully",
+        data: { tracking },
+      });
     } catch (err) {
       next(err);
     }
