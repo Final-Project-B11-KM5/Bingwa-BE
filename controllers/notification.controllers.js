@@ -40,4 +40,23 @@ module.exports = {
       next(err);
     }
   },
+
+  markNotificationsAsRead: async (req, res, next) => {
+    try {
+      const notifications = await prisma.notification.updateMany({
+        where: { userId: Number(req.user.id) },
+        data: {
+          isRead: true,
+        },
+      });
+
+      res.status(200).json({
+        status: true,
+        message: "Notifications marked as read for the user",
+        data: { notifications },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
