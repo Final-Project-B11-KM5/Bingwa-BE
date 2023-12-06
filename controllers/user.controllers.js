@@ -12,6 +12,15 @@ module.exports = {
     try {
       let { fullName, email, phoneNumber, password } = req.body;
       const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+      const emailValidator = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (fullName.length > 50) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid full name length. It must be at most 50 characters.",
+          data: null,
+        });
+      }
 
       const existingUser = await prisma.user.findFirst({
         where: {
@@ -23,6 +32,14 @@ module.exports = {
         return res.status(409).json({
           status: false,
           message: "Email or phone number already exists",
+          data: null,
+        });
+      }
+
+      if (!emailValidator.test(email)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid email format.",
           data: null,
         });
       }
