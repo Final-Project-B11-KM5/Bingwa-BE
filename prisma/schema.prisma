@@ -117,13 +117,13 @@ model Enrollment {
 }
 
 model Payment {
-  id         Int         @id @default(autoincrement())
-  amount     Int
-  status     String      @default("Unpaid")
-  createAt   DateTime    @default(now())
-  updatedAt  DateTime    @default(now())
-  userId     Int
-  user       User        @relation(fields: [userId], references: [id])
-  courseId   Int
-  course     Course      @relation(fields: [courseId], references: [id])
+  id        Int      @id @default(autoincrement())
+  amount    Int
+  status    String   @default("Unpaid")
+  createAt  DateTime @default(now())
+  updatedAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id])
 }

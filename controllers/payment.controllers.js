@@ -38,4 +38,29 @@ module.exports = {
       next(err);
     }
   },
+
+  getPaymentHistory: async (req, res, next) => {
+    try {
+      const payments = await prisma.payment.findMany({
+        where: {
+          userId: Number(req.user.id),
+        },
+        include: {
+          course: {
+            include: {
+              category: true,
+            },
+          },
+        },
+      });
+
+      res.status(200).json({
+        status: true,
+        message: "Get all payment history successful",
+        data: { payments },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
