@@ -60,7 +60,6 @@ module.exports = {
           courseId: Number(courseId),
         },
       });
-
       res.status(201).json({
         status: true,
         message: "Succes To Enroll Course",

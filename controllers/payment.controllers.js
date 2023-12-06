@@ -38,7 +38,6 @@ module.exports = {
       next(err);
     }
   },
-
   getPaymentHistory: async (req, res, next) => {
     try {
       const payments = await prisma.payment.findMany({
@@ -62,5 +61,5 @@ module.exports = {
     } catch (err) {
       next(err);
     }
-  },
+  }, 
 };

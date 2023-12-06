@@ -35,7 +35,7 @@ const createLesson = async (req, res, next) => {
     }
 
     const newLesson = await prisma.lesson.create({
-      data: { lessonName, videoURL, chapterId },
+      data: { lessonName, videoURL, chapterId, },
     });
 
     res.status(201).json({
