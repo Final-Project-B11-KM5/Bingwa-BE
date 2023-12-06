@@ -13,6 +13,7 @@ const Lesson = require("./lesson.routes");
 const Enrollment = require("./enrollment.routes");
 const Promotion = require("./promotion.routes");
 const Payment = require("./payment.routes");
+const Notification = require("./notification.routes");
 
 const swagger_path = path.resolve(__dirname, "../docs/swagger.yaml");
 const customCssUrl = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css";
@@ -33,5 +34,6 @@ router.use("/api/v1/lessons", Lesson);
 router.use("/api/v1/enrollments", Enrollment);
 router.use("/api/v1/promotions", Promotion);
 router.use("/api/v1/payments", Payment);
+router.use("/api/v1/notifications", Notification);
 
 module.exports = router;
