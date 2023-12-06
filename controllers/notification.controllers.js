@@ -2,6 +2,22 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 module.exports = {
+  getAllNotifications: async (req, res, next) => {
+    try {
+      const notifications = await prisma.notification.findMany({
+        where: { userId: Number(req.user.id) },
+      });
+
+      res.status(200).json({
+        status: true,
+        message: "Notifications retrieved successfully",
+        data: { notifications },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   createNotification: async (req, res, next) => {
     try {
       const { title, message } = req.body;
