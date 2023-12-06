@@ -7,6 +7,7 @@ info:
 servers:
   - url: http://localhost:3000/api/v1
   - url: https://bingwa-b11.vercel.app/api/v1
+  - url: https://nodejsglove2040.stack-ap2.st4as.com/api/v1
 tags:
   - name: Users
     description: Operations about user
@@ -24,6 +25,8 @@ tags:
     description: Operations about Enrollment
   - name: Promotions
     description: Operations about Promotion
+  - name: Payments
+    description: Operations about Payment
 paths:
   /users/register:
     post:
@@ -1058,18 +1061,18 @@ paths:
       parameters:
         - name: chapter
           in: query
-          description: chapter for get lessons``
+          description: chapter for get lessons
           required: true
           schema:
             type: string
         - name: lesson
           in: query
-          description: lesson for get lessons``
+          description: lesson for get lessons
           schema:
             type: string
         - name: course
           in: query
-          description: course for get lessons``
+          description: course for get lessons
           schema:
             type: string
       responses:
@@ -1723,6 +1726,94 @@ paths:
                   message:
                     type: string
                     example: "failed"
+  /payments:
+    get:
+      tags:
+        - Payments
+      operationId: get-all-payments
+      summary: get all payments
+      description: get all payments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: search for get payments
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          payments:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/PromotionModel"
+                                - type: object
+                                  properties:
+                                    user:
+                                      allOf:
+                                        - $ref: "#/components/schemas/UserModel"
+                                        - type: object
+                                          properties:
+                                            userProfile:
+                                              allOf:
+                                                - $ref: "#/components/schemas/UserProfileModel"
+                                    course:
+                                      allOf:
+                                        - $ref: "#/components/schemas/CourseModel"
+                                        - type: object
+                                          properties:
+                                            category:
+                                              allOf:
+                                                - $ref: "#/components/schemas/CategoryModel"
+  /payments/history:
+    get:
+      tags:
+        - Payments
+      operationId: get-payments-by-authentication
+      summary: get payments by authentication
+      description: get payments by authentication
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          payments:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/PromotionModel"
+                                - type: object
+                                  properties:
+                                    course:
+                                      allOf:
+                                        - $ref: "#/components/schemas/CourseModel"
+                                        - type: object
+                                          properties:
+                                            category:
+                                              allOf:
+                                                - $ref: "#/components/schemas/CategoryModel"
 components:
   schemas:
     BasicResponse:
@@ -1847,7 +1938,8 @@ components:
           type: integer
           example: 250000
         averageRating:
-          type: integer
+          type: number
+          format: float
           example: 5
         level:
           type: string
@@ -1930,9 +2022,9 @@ components:
         id:
           type: integer
           example: 1
-        isPaid:
-          type: boolean
-          example: false
+        userRating:
+          type: integer
+          example: 5
         createdAt:
           type: string
           example: "2023-11-24T01:11:59.133Z"
@@ -1959,6 +2051,31 @@ components:
         endDate:
           type: string
           example: "2023-11-24T01:11:59.133Z"
+    PaymentModel:
+      title: Payment
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        amount:
+          type: integer
+          example: 100000
+        status:
+          type: string
+          example: "Unpaid"
+        createdAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        updatedAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        userId:
+          type: integer
+          example: 1
+        courseId:
+          type: integer
+          example: 1
   requestBodies:
     Register:
       content:
