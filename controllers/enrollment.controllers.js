@@ -3,7 +3,6 @@ const prisma = new PrismaClient();
 
 module.exports = {
   courseEnrollment: async (req, res, next) => {
-    //for free course
     try {
       const { courseId } = req.params;
 
@@ -36,7 +35,6 @@ module.exports = {
         },
       });
 
-      // check user alredy enrol course or not
       if (statusEnrollUser) {
         return res.status(400).json({
           status: false,
@@ -45,7 +43,6 @@ module.exports = {
         });
       }
 
-      // Check if the course is premium
       if (course.isPremium) {
         return res.status(400).json({
           status: false,
@@ -60,10 +57,38 @@ module.exports = {
           courseId: Number(courseId),
         },
       });
+
+      const lessons = await prisma.lesson.findMany({
+        where: {
+          chapter: {
+            courseId: Number(courseId),
+          },
+        },
+      });
+
+      const trackingRecords = await Promise.all(
+        lessons.map(async (lesson) => {
+          return prisma.tracking.create({
+            data: {
+              userId: Number(req.user.id),
+              lessonId: lesson.id,
+              status: false,
+            },
+            include: {
+              lesson: {
+                select: {
+                  lessonName: true,
+                },
+              },
+            },
+          });
+        })
+      );
+
       res.status(201).json({
         status: true,
         message: "Succes To Enroll Course",
-        data: { enrollCourse },
+        data: { enrollCourse, trackingRecords },
       });
     } catch (err) {
       next(err);
@@ -157,14 +182,10 @@ module.exports = {
         });
       }
 
-      if (
-        userRating !== undefined &&
-        (isNaN(userRating) || userRating < 1 || userRating > 5)
-      ) {
+      if (userRating !== undefined && (isNaN(userRating) || userRating < 1 || userRating > 5)) {
         return res.status(400).json({
           status: false,
-          message:
-            "Invalid userRating provided. It must be a number between 1 and 5.",
+          message: "Invalid userRating provided. It must be a number between 1 and 5.",
           data: null,
         });
       }
@@ -193,12 +214,8 @@ module.exports = {
         where: { courseId: course.id, userRating: { not: null } },
       });
 
-      const totalRatings = enrollments.reduce(
-        (total, enrollment) => total + (enrollment.userRating || 0),
-        0
-      );
-      const averageRating =
-        enrollments.length > 0 ? totalRatings / enrollments.length : 0;
+      const totalRatings = enrollments.reduce((total, enrollment) => total + (enrollment.userRating || 0), 0);
+      const averageRating = enrollments.length > 0 ? totalRatings / enrollments.length : 0;
 
       let updatedCourse = await prisma.course.update({
         where: { id: course.id },

@@ -7,8 +7,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -81,16 +81,16 @@ model Chapter {
 }
 
 model Lesson {
-  id         Int        @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   lessonName String
   videoURL   String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @default(now())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
   chapterId  Int
   courseId   Int?
-  tracking   Tracking[]
-  chapter    Chapter    @relation(fields: [chapterId], references: [id])
-  Course     Course?    @relation(fields: [courseId], references: [id])
+  tracking   Tracking?
+  chapter    Chapter   @relation(fields: [chapterId], references: [id])
+  Course     Course?   @relation(fields: [courseId], references: [id])
 }
 
 model Promotion {
@@ -119,7 +119,6 @@ model Enrollment {
   user       User     @relation(fields: [userId], references: [id])
   courseId   Int
   course     Course   @relation(fields: [courseId], references: [id])
-  trackingId Int
 }
 
 model Payment {
@@ -136,9 +135,9 @@ model Payment {
 
 model Tracking {
   id       Int     @id @default(autoincrement())
-  User     User?   @relation(fields: [userId], references: [id])
-  userId   Int?
-  Lesson   Lesson? @relation(fields: [lessonId], references: [id])
-  lessonId Int?
   status   Boolean @default(false)
+  userId   Int?
+  user     User?   @relation(fields: [userId], references: [id])
+  lessonId Int?    @unique
+  lesson   Lesson? @relation(fields: [lessonId], references: [id])
 }
