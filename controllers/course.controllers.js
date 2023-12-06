@@ -5,7 +5,8 @@ const getPagination = require("../utils/getPaggination");
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId, averageRating } = req.body;
+      const { price, isPremium, categoryId, promotionId, averageRating } =
+        req.body;
 
       if (averageRating !== undefined) {
         return res.status(400).json({
@@ -148,14 +149,9 @@ module.exports = {
           id: Number(idCourse),
         },
         include: {
-          chapter: {
-            include: {
-              lesson: {
-                select: {
-                  lessonName: true,
-                  videoURL: true,
-                },
-              },
+          category: {
+            select: {
+              categoryName: true,
             },
           },
         },
@@ -218,7 +214,10 @@ module.exports = {
           ...filterOptions[filter],
           where: {
             category: {
-              categoryName: typeof category !== "string" ? { in: [...category] } : { in: [category] },
+              categoryName:
+                typeof category !== "string"
+                  ? { in: [...category] }
+                  : { in: [category] },
             },
             ...(level && { level: level }),
           },
@@ -259,7 +258,12 @@ module.exports = {
           _count: { id: true },
         });
 
-        const paggination = getPagination(req, _count.id, Number(page), Number(limit));
+        const paggination = getPagination(
+          req,
+          _count.id,
+          Number(page),
+          Number(limit)
+        );
 
         res.status(200).json({
           status: true,
