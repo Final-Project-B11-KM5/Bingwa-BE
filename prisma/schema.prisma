@@ -15,11 +15,12 @@ datasource db {
 model User {
   id           Int            @id @default(autoincrement())
   email        String         @unique
-  password     String
-  otp          String
-  otpCreatedAt DateTime
+  password     String?
+  otp          String?
+  otpCreatedAt DateTime?
   isVerified   Boolean        @default(false)
   role         String         @default("user")
+  googleId     String?
   courses      Course[]       @relation("UserToCourse")
   tracking     Tracking[]
   userProfile  UserProfile?
@@ -32,7 +33,7 @@ model UserProfile {
   id             Int     @id @default(autoincrement())
   profilePicture String?
   fullName       String
-  phoneNumber    String  @unique
+  phoneNumber    String? @unique
   city           String?
   country        String?
   userId         Int     @unique
