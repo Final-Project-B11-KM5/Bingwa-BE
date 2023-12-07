@@ -243,7 +243,7 @@ module.exports = {
         });
       }
 
-      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY);
+      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY, { expiresIn: "1h" });
       const html = await nodemailer.getHtml("email-password-reset.ejs", {
         email,
         token,
