@@ -22,6 +22,13 @@ module.exports = {
     try {
       const { title, message } = req.body;
 
+      if (!title || !message) {
+        return res.status(400).json({
+          status: false,
+          message: "Title and message are required fields",
+        });
+      }
+
       const allUsers = await prisma.user.findMany();
 
       const newNotification = await Promise.all(

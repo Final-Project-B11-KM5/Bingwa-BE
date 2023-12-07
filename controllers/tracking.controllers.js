@@ -6,6 +6,14 @@ module.exports = {
     try {
       const lessonId = req.params.lessonId;
 
+      if (isNaN(lessonId) || lessonId <= 0) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid lessonId parameter",
+          data: null,
+        });
+      }
+
       const lesson = await prisma.lesson.findUnique({
         where: { id: Number(lessonId) },
       });
