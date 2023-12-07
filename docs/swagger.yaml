@@ -441,6 +441,35 @@ paths:
                   message:
                     type: string
                     example: "Incorrect old password"
+  /users/google:
+    get:
+      tags:
+        - Users
+      operationId: get-login-user-with-google
+      summary: Initiate Google OAuth 2.0 Authentication
+      description: Redirects the user to Google for authentication.
+      security:
+        - google_oauth: []
+      responses:
+        "302":
+          description: Redirect to Google for authentication.
+  /users/google/callback:
+    get:
+      tags:
+        - Users
+      operationId: get-login-user-with-google-callback
+      summary: Google OAuth 2.0 Callback
+      description: Handles the callback after successful Google authentication.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Authorization code received from Google.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully authenticated with Google.
   /user-profiles/update-profile:
     put:
       tags:
@@ -2393,3 +2422,13 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    google_oauth:
+      type: oauth2
+      description: Google OAuth
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.google.com/o/oauth2/v2/auth
+          tokenUrl: https://www.googleapis.com/oauth2/v4/token
+          scopes:
+            profile: View your basic profile info
+            email: View your email address
