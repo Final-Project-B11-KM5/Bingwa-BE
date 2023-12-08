@@ -7,6 +7,7 @@ CREATE TABLE "User" (
     "otpCreatedAt" TIMESTAMP(3),
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "role" TEXT NOT NULL DEFAULT 'user',
+    "resetPasswordToken" TEXT,
     "googleId" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -116,6 +117,7 @@ CREATE TABLE "Payment" (
     "id" SERIAL NOT NULL,
     "amount" INTEGER NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'Unpaid',
+    "methodPayment" TEXT NOT NULL,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" INTEGER NOT NULL,
