@@ -7,25 +7,26 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  email        String         @unique
-  password     String
-  otp          String
-  otpCreatedAt DateTime
-  isVerified   Boolean        @default(false)
-  role         String         @default("user")
-  courses      Course[]       @relation("UserToCourse")
-  tracking     Tracking[]
-  userProfile  UserProfile?
-  notification Notification[]
-  enrollment   Enrollment[]
-  payment      Payment[]
+  id                 Int            @id @default(autoincrement())
+  email              String         @unique
+  password           String
+  otp                String
+  otpCreatedAt       DateTime
+  isVerified         Boolean        @default(false)
+  role               String         @default("user")
+  resetPasswordToken String?
+  courses            Course[]       @relation("UserToCourse")
+  tracking           Tracking[]
+  userProfile        UserProfile?
+  notification       Notification[]
+  enrollment         Enrollment[]
+  payment            Payment[]
 }
 
 model UserProfile {
@@ -122,15 +123,16 @@ model Enrollment {
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
-  amount    Int
-  status    String   @default("Unpaid")
-  createAt  DateTime @default(now())
-  updatedAt DateTime @default(now())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  courseId  Int
-  course    Course   @relation(fields: [courseId], references: [id])
+  id            Int      @id @default(autoincrement())
+  amount        Int
+  status        String   @default("Unpaid")
+  methodPayment String
+  createAt      DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  courseId      Int
+  course        Course   @relation(fields: [courseId], references: [id])
 }
 
 model Tracking {
