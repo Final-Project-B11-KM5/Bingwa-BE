@@ -15,6 +15,14 @@ module.exports = {
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
       const emailValidator = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+      if (!fullName || !email || !phoneNumber || !password) {
+        return res.status(400).json({
+          status: false,
+          message: "All fields are required.",
+          data: null,
+        });
+      }
+
       if (fullName.length > 50) {
         return res.status(400).json({
           status: false,
@@ -251,7 +259,7 @@ module.exports = {
         });
       }
 
-      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY);
+      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY, { expiresIn: "1h" });
       const html = await nodemailer.getHtml("email-password-reset.ejs", {
         email,
         token,
@@ -430,5 +438,16 @@ module.exports = {
     } catch (err) {
       next(err);
     }
+  },
+
+  googleOauth2: (req, res) => {
+    let token = jwt.sign({ id: req.user.id }, JWT_SECRET_KEY);
+
+    return res.status(200).json({
+      status: true,
+      message: "OK",
+      err: null,
+      data: { user: req.user, token },
+    });
   },
 };

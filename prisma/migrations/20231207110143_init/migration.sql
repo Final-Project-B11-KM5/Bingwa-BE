@@ -2,11 +2,12 @@
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "otp" TEXT NOT NULL,
-    "otpCreatedAt" TIMESTAMP(3) NOT NULL,
+    "password" TEXT,
+    "otp" TEXT,
+    "otpCreatedAt" TIMESTAMP(3),
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "role" TEXT NOT NULL DEFAULT 'user',
+    "googleId" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -16,7 +17,7 @@ CREATE TABLE "UserProfile" (
     "id" SERIAL NOT NULL,
     "profilePicture" TEXT,
     "fullName" TEXT NOT NULL,
-    "phoneNumber" TEXT NOT NULL,
+    "phoneNumber" TEXT,
     "city" TEXT,
     "country" TEXT,
     "userId" INTEGER NOT NULL,
@@ -72,6 +73,7 @@ CREATE TABLE "Lesson" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "chapterId" INTEGER NOT NULL,
+    "courseId" INTEGER,
 
     CONSTRAINT "Lesson_pkey" PRIMARY KEY ("id")
 );
@@ -105,7 +107,6 @@ CREATE TABLE "Enrollment" (
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" INTEGER NOT NULL,
     "courseId" INTEGER NOT NULL,
-    "trackingId" INTEGER NOT NULL,
 
     CONSTRAINT "Enrollment_pkey" PRIMARY KEY ("id")
 );
@@ -126,9 +127,9 @@ CREATE TABLE "Payment" (
 -- CreateTable
 CREATE TABLE "Tracking" (
     "id" SERIAL NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT false,
     "userId" INTEGER,
     "lessonId" INTEGER,
-    "status" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Tracking_pkey" PRIMARY KEY ("id")
 );
@@ -152,6 +153,9 @@ CREATE UNIQUE INDEX "UserProfile_userId_key" ON "UserProfile"("userId");
 CREATE UNIQUE INDEX "Category_categoryName_key" ON "Category"("categoryName");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Tracking_lessonId_key" ON "Tracking"("lessonId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_UserToCourse_AB_unique" ON "_UserToCourse"("A", "B");
 
 -- CreateIndex
@@ -171,6 +175,9 @@ ALTER TABLE "Chapter" ADD CONSTRAINT "Chapter_courseId_fkey" FOREIGN KEY ("cours
 
 -- AddForeignKey
 ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_chapterId_fkey" FOREIGN KEY ("chapterId") REFERENCES "Chapter"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
