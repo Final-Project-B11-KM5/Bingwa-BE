@@ -40,7 +40,6 @@ module.exports = {
       }
       // end check user alredy enroll course or not
 
-
       // create payment
       amount = course.price * PPN + course.price;
 
@@ -52,7 +51,7 @@ module.exports = {
         });
       }
       try {
-        let paymentCourse = await prisma.payment.create({
+        let newPayment = await prisma.payment.create({
           data: {
             amount,
             courseId: Number(idCourse),
@@ -65,7 +64,7 @@ module.exports = {
           course: course.courseName,
         });
         nodemailer.sendEmail(req.user.email, "Email Transaction", html);
-        
+
         // update data enrollment when payment succesfully
         await prisma.enrollment.create({
           data: {
@@ -77,7 +76,7 @@ module.exports = {
         res.status(201).json({
           status: true,
           message: "succes to Create Payment",
-          data: paymentCourse,
+          data: { newPayment },
         });
       } catch (err) {
         res.status(400).json({
