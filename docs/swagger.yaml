@@ -1036,6 +1036,12 @@ paths:
       operationId: get-all-lessons
       summary: Get all lessons
       description: Get all lessons
+      parameters:
+        - name: search
+          in: query
+          description: search for get chapters
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -1052,11 +1058,24 @@ paths:
                           lessons:
                             type: array
                             items:
-                              $ref: "#/components/schemas/LessonModel"
-                              type: object
-                              properties:
-                                chapter:
-                                  $ref: "#/components/schemas/ChapterModel"
+                              allOf:
+                                - $ref: "#/components/schemas/LessonModel"
+                                - type: object
+                                  properties:
+                                    chapter:
+                                      allOf:
+                                        - $ref: "#/components/schemas/ChapterModel"
+                                        - type: object
+                                          properties:
+                                            course:
+                                              allOf:
+                                                - $ref: "#/components/schemas/CourseModel"
+                                                - type: object
+                                                  properties:
+                                                    category:
+                                                      allOf:
+                                                        - $ref: "#/components/schemas/CategoryModel"
+
     post:
       tags:
         - Lessons
