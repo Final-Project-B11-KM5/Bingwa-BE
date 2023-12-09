@@ -1,6 +1,12 @@
+const midtransClient = require("midtrans-client");
+const axios = require("axios");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+
 const nodemailer = require("../utils/nodemailer");
+
+const { PAYMENT_CLIENT_KEY, PAYMENT_SERVER_KEY } = process.env;
+
 module.exports = {
   createPayment: async (req, res, next) => {
     try {
@@ -230,6 +236,124 @@ module.exports = {
         status: true,
         message: "Get all payment history successful",
         data: { payments },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  createPaymentMidtrans: async (req, res, next) => {
+    try {
+      const courseId = req.params.courseId;
+      const { methodPayment, cardNumber, cvv, expiryDate } = req.body;
+
+      let month = expiryDate.slice(0, 2);
+      let year = expiryDate.slice(3);
+
+      const response = await axios.get(`https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
+
+      const token_id = response.data.token_id;
+
+      let core = new midtransClient.CoreApi({
+        // Set to true if you want Production Environment (accept real transaction).
+        isProduction: false,
+        serverKey: PAYMENT_SERVER_KEY,
+        clientKey: PAYMENT_CLIENT_KEY,
+      });
+
+      const user = await prisma.user.findUnique({
+        where: { id: Number(req.user.id) },
+        include: {
+          userProfile: true,
+        },
+      });
+
+      const course = await prisma.course.findUnique({
+        where: { id: Number(courseId) },
+      });
+
+      const totalPrice = (course.price * 0, 11) + course.price;
+
+      let newPayment = await prisma.payment.create({
+        data: {
+          amount: totalPrice,
+          methodPayment,
+          courseId: Number(courseId),
+          userId: Number(req.user.id),
+        },
+      });
+
+      let parameter = {
+        payment_type: "credit_card",
+        transaction_details: {
+          order_id: 100 + newPayment.id,
+          gross_amount: totalPrice,
+        },
+        credit_card: {
+          token_id: token_id,
+          authentication: true,
+        },
+        customer_details: {
+          first_name: user.userProfile.fullName,
+          email: user.email,
+          phone: user.userProfile.phoneNumber,
+        },
+      };
+
+      let transaction = await core.charge(parameter);
+
+      res.status(201).json({
+        status: true,
+        message: "Payment initiated successfully",
+        data: {
+          newPayment,
+          transaction,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  handlePaymentNotification: async (req, res) => {
+    try {
+      const { currency, fraud_status, gross_amount, order_id, payment_type, status_code, status_message, transaction_id, transaction_status, transaction_time, merchant_id } = req.body;
+
+      let core = new midtransClient.CoreApi({
+        isProduction: false,
+        serverKey: PAYMENT_SERVER_KEY,
+        clientKey: PAYMENT_CLIENT_KEY,
+      });
+
+      let notification = {
+        currency,
+        fraud_status,
+        gross_amount,
+        order_id,
+        payment_type,
+        status_code,
+        status_message,
+        transaction_id,
+        transaction_status,
+        transaction_time,
+        merchant_id,
+      };
+
+      let data = await core.transaction.notification(notification);
+
+      const updatedPayment = await prisma.payment.update({
+        where: { id: data.order_id },
+        data: {
+          status: "Paid",
+          methodPayment: data.payment_type,
+          updatedAt: new Date(),
+        },
+      });
+
+      res.status(200).json({
+        status: true,
+        message: "Payment notification processed successfully",
+        data: { updatedPayment },
       });
     } catch (err) {
       next(err);

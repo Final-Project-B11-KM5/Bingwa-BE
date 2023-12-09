@@ -9,7 +9,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -66,7 +66,6 @@ model Course {
   chapter          Chapter[]
   enrollment       Enrollment[]
   payment          Payment[]
-  lesson           Lesson[]
   user             User[]       @relation("UserToCourse")
   createdAt        DateTime     @default(now())
   categoryId       Int
@@ -91,10 +90,8 @@ model Lesson {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @default(now())
   chapterId  Int
-  courseId   Int?
   tracking   Tracking?
   chapter    Chapter   @relation(fields: [chapterId], references: [id])
-  Course     Course?   @relation(fields: [courseId], references: [id])
 }
 
 model Promotion {

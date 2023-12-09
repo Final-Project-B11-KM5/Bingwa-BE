@@ -30,6 +30,7 @@ CREATE TABLE "UserProfile" (
 CREATE TABLE "Category" (
     "id" SERIAL NOT NULL,
     "categoryName" TEXT NOT NULL,
+    "categoryImg" TEXT,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
@@ -49,6 +50,7 @@ CREATE TABLE "Course" (
     "videoURL" TEXT NOT NULL,
     "forumURL" TEXT NOT NULL,
     "duration" TEXT NOT NULL,
+    "courseImg" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "categoryId" INTEGER NOT NULL,
     "promotionId" INTEGER,
@@ -74,7 +76,6 @@ CREATE TABLE "Lesson" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "chapterId" INTEGER NOT NULL,
-    "courseId" INTEGER,
 
     CONSTRAINT "Lesson_pkey" PRIMARY KEY ("id")
 );
@@ -177,9 +178,6 @@ ALTER TABLE "Chapter" ADD CONSTRAINT "Chapter_courseId_fkey" FOREIGN KEY ("cours
 
 -- AddForeignKey
 ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_chapterId_fkey" FOREIGN KEY ("chapterId") REFERENCES "Chapter"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Lesson" ADD CONSTRAINT "Lesson_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
