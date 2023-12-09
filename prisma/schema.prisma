@@ -9,7 +9,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -44,6 +44,7 @@ model UserProfile {
 model Category {
   id           Int      @id @default(autoincrement())
   categoryName String   @unique
+  categoryImg  String?
   course       Course[]
 }
 
@@ -61,6 +62,7 @@ model Course {
   videoURL         String
   forumURL         String
   duration         String
+  courseImg        String?
   chapter          Chapter[]
   enrollment       Enrollment[]
   payment          Payment[]
