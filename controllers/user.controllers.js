@@ -156,11 +156,13 @@ module.exports = {
 
       let token = jwt.sign({ id: user.id }, JWT_SECRET_KEY);
 
-      return res.status(200).json({
-        status: true,
-        message: "Login successful",
-        data: { user, token },
-      });
+      return res
+      .status(200)
+      .json({
+          status: true,
+          message: "Login successful",
+          data: { user, token },
+        });
     } catch (err) {
       next(err);
     }

@@ -167,7 +167,7 @@ const deleteLessonById = async (req, res, next) => {
   }
 };
 
-const searchLesson = async (req, res, next) => {
+const filterLesson = async (req, res, next) => {
   try {
     const { chapter, lesson, course } = req.query;
     if (chapter || lesson || course) {
@@ -274,6 +274,6 @@ module.exports = {
   getDetailLesson,
   updateDetailLesson,
   deleteLessonById,
-  searchLesson,
+  filterLesson,
   showLessonByCourse,
 };
