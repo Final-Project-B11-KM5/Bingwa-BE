@@ -73,6 +73,33 @@ module.exports = {
           },
         });
 
+        const lessons = await prisma.lesson.findMany({
+          where: {
+            chapter: {
+              courseId: Number(idCourse),
+            },
+          },
+        });
+
+        await Promise.all(
+          lessons.map(async (lesson) => {
+            return prisma.tracking.create({
+              data: {
+                userId: Number(req.user.id),
+                lessonId: lesson.id,
+                status: false,
+              },
+              include: {
+                lesson: {
+                  select: {
+                    lessonName: true,
+                  },
+                },
+              },
+            });
+          })
+        );
+
         res.status(201).json({
           status: true,
           message: "succes to Create Payment",

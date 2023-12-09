@@ -35,7 +35,7 @@ const createLesson = async (req, res, next) => {
     }
 
     const newLesson = await prisma.lesson.create({
-      data: { lessonName, videoURL, chapterId, },
+      data: { lessonName, videoURL, chapterId },
     });
 
     res.status(201).json({
@@ -50,11 +50,25 @@ const createLesson = async (req, res, next) => {
 
 const getAllLessons = async (req, res, next) => {
   try {
+    const { search } = req.query;
+
     const lessons = await prisma.lesson.findMany({
+      where: {
+        OR: [
+          { lessonName: { contains: search, mode: "insensitive" } },
+          { chapter: { name: { contains: search, mode: "insensitive" } } },
+          { chapter: { course: { courseName: { contains: search, mode: "insensitive" } } } },
+          { chapter: { course: { category: { categoryName: { contains: search, mode: "insensitive" } } } } },
+        ],
+      },
       include: {
         chapter: {
-          select: {
-            name: true,
+          include: {
+            course: {
+              include: {
+                category: true,
+              },
+            },
           },
         },
       },
