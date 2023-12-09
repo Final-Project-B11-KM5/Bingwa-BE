@@ -33,4 +33,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => console.log(`server running at http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`server running at http://localhost:${PORT}`)
+);
