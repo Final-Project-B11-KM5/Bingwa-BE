@@ -105,7 +105,6 @@ CREATE TABLE "Notification" (
 -- CreateTable
 CREATE TABLE "Enrollment" (
     "id" SERIAL NOT NULL,
-    "userRating" INTEGER,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" INTEGER NOT NULL,
     "courseId" INTEGER NOT NULL,
@@ -138,6 +137,17 @@ CREATE TABLE "Tracking" (
 );
 
 -- CreateTable
+CREATE TABLE "Review" (
+    "id" SERIAL NOT NULL,
+    "userRating" INTEGER NOT NULL,
+    "userComment" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "enrollmentId" INTEGER NOT NULL,
+
+    CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_UserToCourse" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
@@ -156,7 +166,7 @@ CREATE UNIQUE INDEX "UserProfile_userId_key" ON "UserProfile"("userId");
 CREATE UNIQUE INDEX "Category_categoryName_key" ON "Category"("categoryName");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Tracking_lessonId_key" ON "Tracking"("lessonId");
+CREATE UNIQUE INDEX "Review_enrollmentId_key" ON "Review"("enrollmentId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_UserToCourse_AB_unique" ON "_UserToCourse"("A", "B");
@@ -199,6 +209,9 @@ ALTER TABLE "Tracking" ADD CONSTRAINT "Tracking_userId_fkey" FOREIGN KEY ("userI
 
 -- AddForeignKey
 ALTER TABLE "Tracking" ADD CONSTRAINT "Tracking_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_enrollmentId_fkey" FOREIGN KEY ("enrollmentId") REFERENCES "Enrollment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_UserToCourse" ADD CONSTRAINT "_UserToCourse_A_fkey" FOREIGN KEY ("A") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;
