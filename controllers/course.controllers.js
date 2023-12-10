@@ -216,7 +216,14 @@ module.exports = {
 
   getCourse: async (req, res, next) => {
     try {
-      const { search, filter, category, level } = req.query;
+      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
+
+      const { _count } = await prisma.course.aggregate({
+        _count: { id: true },
+      });
+
+      const pagination = getPagination(req, _count.id, Number(page), Number(limit));
+
       let coursesQuery = {
         where: {},
       };
@@ -249,9 +256,12 @@ module.exports = {
       }
 
       let courses = await prisma.course.findMany({
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
         where: coursesQuery.where,
         orderBy: coursesQuery.orderBy,
         include: {
+          promotion: true,
           category: true,
         },
       });
@@ -259,7 +269,7 @@ module.exports = {
       return res.status(200).json({
         status: true,
         message: "Courses retrieved successfully",
-        data: { courses },
+        data: { pagination, courses },
       });
     } catch (err) {
       next(err);

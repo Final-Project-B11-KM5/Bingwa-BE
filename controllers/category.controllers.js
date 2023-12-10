@@ -26,9 +26,7 @@ module.exports = {
       const { search } = req.query;
 
       const categories = await prisma.category.findMany({
-        where: search
-          ? { categoryName: { contains: search, mode: "insensitive" } }
-          : { },
+        where: search ? { categoryName: { contains: search, mode: "insensitive" } } : {},
       });
 
       return res.status(200).json({
@@ -44,7 +42,7 @@ module.exports = {
   editCategory: async (req, res, next) => {
     try {
       const { idCategory } = req.params;
-      const { categoryName } = req.body;
+      const { categoryName, categoryImg } = req.body;
 
       let editedCategory = await prisma.category.update({
         where: {
@@ -52,6 +50,7 @@ module.exports = {
         },
         data: {
           categoryName,
+          categoryImg,
         },
       });
       res.status(200).json({
@@ -67,11 +66,25 @@ module.exports = {
   deleteCategory: async (req, res, next) => {
     try {
       const { idCategory } = req.params;
-      let deletedCategory = await prisma.category.delete({
+
+      const category = await prisma.category.findUnique({
+        where: { id: Number(idCategory) },
+      });
+
+      if (!category) {
+        res.status(404).json({
+          status: false,
+          message: "Category Not Found",
+          data: null,
+        });
+      }
+
+      const deletedCategory = await prisma.category.delete({
         where: {
           id: Number(idCategory),
         },
       });
+
       res.status(200).json({
         status: true,
         message: "delete category successful",
