@@ -23,6 +23,8 @@ tags:
     description: Operations about Lesson
   - name: Enrollments
     description: Operations about Enrollment
+  - name: Reviews
+    description: Operations about Review
   - name: Promotions
     description: Operations about Promotion
   - name: Notifications
@@ -1504,54 +1506,6 @@ paths:
                     type: string
                     example: "failed"
   /enrollments/{courseId}:
-    put:
-      tags:
-        - Enrollments
-      operationId: put-enrollment-by-courseId
-      summary: put enrollment by courseId
-      description: put enrollment by courseId
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: courseId
-          schema:
-            type: integer
-          required: true
-          description: The ID of the enrollment to retrieve.
-      requestBody:
-        $ref: "#/components/requestBodies/RatingEnrollment"
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          updatedEnrollment:
-                            $ref: "#/components/schemas/EnrollmentModel"
-                          updatedCourse:
-                            $ref: "#/components/schemas/CourseModel"
-        "404":
-          description: Enrollment Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: "failed"
-  /enrollments/{courseId}/course:
     post:
       tags:
         - Enrollments
@@ -1609,6 +1563,54 @@ paths:
                   message:
                     type: string
                     example: "failed"
+        "404":
+          description: Enrollment Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /reviews/{courseId}:
+    post:
+      tags:
+        - Reviews
+      operationId: post-create-review
+      summary: post create review
+      description: post create review
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the enrollment to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateReview"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newReview:
+                            $ref: "#/components/schemas/EnrollmentModel"
+                          updatedCourse:
+                            $ref: "#/components/schemas/CourseModel"
         "404":
           description: Enrollment Not Found
           content:
@@ -2533,6 +2535,22 @@ components:
         courseId:
           type: integer
           example: 1
+    ReviewModel:
+      title: Review
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userRating:
+          type: integer
+          example: 5
+        userComment:
+          type: string
+          example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
+        enrollmentId:
+          type: integer
+          example: 1
   requestBodies:
     Register:
       content:
@@ -2816,7 +2834,7 @@ components:
               chapterId:
                 type: integer
                 example: 1
-    RatingEnrollment:
+    CreateReview:
       content:
         application/json:
           schema:
@@ -2825,6 +2843,9 @@ components:
               userRating:
                 type: integer
                 example: 5
+              userComment:
+                type: string
+                example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
     CreatePromotion:
       content:
         application/json:

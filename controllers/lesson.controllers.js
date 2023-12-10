@@ -34,14 +34,39 @@ const createLesson = async (req, res, next) => {
       });
     }
 
+    const users = await prisma.user.findMany();
+
+    const enrollments = await prisma.enrollment.findMany({
+      where: { userId: { in: users.map((user) => user.id) } },
+    });
+
     const newLesson = await prisma.lesson.create({
       data: { lessonName, videoURL, chapterId },
     });
 
+    const trackingRecords = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        return prisma.tracking.create({
+          data: {
+            userId: Number(enrollment.userId),
+            lessonId: Number(newLesson.id),
+            status: false,
+          },
+          include: {
+            lesson: {
+              select: {
+                lessonName: true,
+              },
+            },
+          },
+        });
+      })
+    );
+
     res.status(201).json({
       status: true,
       message: "Lesson created successfully",
-      data: { newLesson },
+      data: { newLesson, trackingRecords },
     });
   } catch (err) {
     next(err);

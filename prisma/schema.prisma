@@ -84,14 +84,14 @@ model Chapter {
 }
 
 model Lesson {
-  id         Int       @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   lessonName String
   videoURL   String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @default(now())
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now())
   chapterId  Int
-  tracking   Tracking?
-  chapter    Chapter   @relation(fields: [chapterId], references: [id])
+  tracking   Tracking[]
+  chapter    Chapter    @relation(fields: [chapterId], references: [id])
 }
 
 model Promotion {
@@ -113,13 +113,13 @@ model Notification {
 }
 
 model Enrollment {
-  id         Int      @id @default(autoincrement())
-  userRating Int?
-  createAt   DateTime @default(now())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  courseId   Int
-  course     Course   @relation(fields: [courseId], references: [id])
+  id       Int      @id @default(autoincrement())
+  createAt DateTime @default(now())
+  userId   Int
+  user     User     @relation(fields: [userId], references: [id])
+  courseId Int
+  course   Course   @relation(fields: [courseId], references: [id])
+  review   Review?
 }
 
 model Payment {
@@ -140,6 +140,15 @@ model Tracking {
   status   Boolean @default(false)
   userId   Int?
   user     User?   @relation(fields: [userId], references: [id])
-  lessonId Int?    @unique
+  lessonId Int?
   lesson   Lesson? @relation(fields: [lessonId], references: [id])
+}
+
+model Review {
+  id           Int        @id @default(autoincrement())
+  userRating   Int
+  userComment  String?
+  createdAt    DateTime   @default(now())
+  enrollmentId Int        @unique
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
 }
