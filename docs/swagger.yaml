@@ -139,6 +139,12 @@ paths:
                               role:
                                 type: string
                                 example: "user"
+                              resetPasswordToken:
+                                type: string
+                                example: null
+                              googleId:
+                                type: string
+                                example: null
                           token:
                             type: string
                             example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjk4Njk0MzI1fQ.mexfgD-aW24iYvoWYWQJWSv7AbJ5EqyIDrHS6iCk-d0"
@@ -214,6 +220,12 @@ paths:
                               role:
                                 type: string
                                 example: "user"
+                              resetPasswordToken:
+                                type: string
+                                example: null
+                              googleId:
+                                type: string
+                                example: null
         "401":
           description: Invalid OTP
           content:
@@ -286,8 +298,12 @@ paths:
                       data:
                         type: object
                         properties:
-                          user:
-                            $ref: "#/components/schemas/UserModel"
+                          email:
+                            type: string
+                            example: "budi@mail.com"
+                          token:
+                            type: string
+                            example: "$2b$10$wpqr1W8aUNCN7BZZ3o6sz.meX9rB/aItp5Mw/0q7GaRmJbsU2GGbK"
         "404":
           description: Email not found
           content:
@@ -647,6 +663,16 @@ paths:
           description: level for get courses
           schema:
             type: string
+        - name: page
+          in: query
+          description: Used to specify a particular page when retrieving course data
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Determines the limit of the number of courses to be returned in a single request.
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -879,6 +905,25 @@ paths:
                             items:
                               allOf:
                                 - $ref: "#/components/schemas/ChapterModel"
+                                - type: object
+                                  properties:
+                                    course:
+                                      type: object
+                                      properties:
+                                        courseName:
+                                          type: string
+                                          example: "The Purpose of Taking Design System Classes"
+                                        category:
+                                          type: object
+                                          properties:
+                                            categoryName:
+                                              type: string
+                                              example: "UI/UX Design"
+                                    lesson:
+                                      type: array
+                                      items:
+                                        allOf:
+                                          - $ref: "#/components/schemas/LessonModel"
     post:
       tags:
         - Chapters
@@ -932,7 +977,15 @@ paths:
                         type: object
                         properties:
                           chapter:
-                            $ref: "#/components/schemas/ChapterModel"
+                            allOf:
+                              - $ref: "#/components/schemas/ChapterModel"
+                              - type: object
+                                properties:
+                                  lesson:
+                                    type: array
+                                    items:
+                                      allOf:
+                                        - $ref: "#/components/schemas/LessonModel"
         "404":
           description: Chapter Not Found
           content:
@@ -1106,7 +1159,7 @@ paths:
                         properties:
                           newLesson:
                             $ref: "#/components/schemas/LessonModel"
-  /lessons/search:
+  /lessons/filter:
     get:
       tags:
         - Lessons
@@ -1829,8 +1882,8 @@ paths:
     post:
       tags:
         - Notifications
-      operationId: post-create-notification
-      summary: Create notification
+      operationId: post-create-notification-for-all-users
+      summary: Create notification for all users
       description: Create notification with the provided information.
       security:
         - bearerAuth: []
@@ -2013,7 +2066,7 @@ paths:
                                             category:
                                               allOf:
                                                 - $ref: "#/components/schemas/CategoryModel"
-  /payments/{courseId}/course:
+  /payments/{courseId}:
     get:
       tags:
         - Payments
@@ -2128,7 +2181,65 @@ paths:
                   message:
                     type: string
                     example: "failed"
-
+  /payments/midtrans/{courseId}:
+    post:
+      tags:
+        - Payments
+      operationId: post-create-payment-midtrans
+      summary: post create payment midtrans
+      description: post create payment midtrans
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/CreatePaymentMidtrans"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newPayment:
+                            $ref: "#/components/schemas/PaymentModel"
+        "400":
+          description: Invalid Promotion ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+        "404":
+          description: Promotion Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
 components:
   schemas:
     BasicResponse:
@@ -2182,6 +2293,12 @@ components:
         role:
           type: string
           example: "user"
+        resetPasswordToken:
+          type: string
+          example: "$2b$10$wpqr1W8aUNCN7BZZ3o6sz.meX9rB/aItp5Mw/0q7GaRmJbsU2GGbK"
+        googleId:
+          type: string
+          example: null
     UserProfileModel:
       title: User Profile
       type: object
@@ -2239,6 +2356,9 @@ components:
         categoryName:
           type: string
           example: "UI/UX Design"
+        categoryImg:
+          type: string
+          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
     CourseModel:
       title: Course
       type: object
@@ -2283,6 +2403,9 @@ components:
         duration:
           type: string
           example: "120 Minute"
+        courseImg:
+          type: string
+          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
         createdAt:
           type: string
           example: "2023-11-24T01:11:59.133Z"
@@ -2528,6 +2651,9 @@ components:
               categoryName:
                 type: string
                 example: "UI/UX Design"
+              categoryImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
     EditCategory:
       content:
         application/json:
@@ -2537,6 +2663,9 @@ components:
               categoryName:
                 type: string
                 example: "UI/UX Design"
+              categoryImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
     CreateCourse:
       content:
         application/json:
@@ -2576,6 +2705,9 @@ components:
               duration:
                 type: string
                 example: "120 Minute"
+              courseImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
               categoryId:
                 type: integer
                 example: 1
@@ -2621,6 +2753,9 @@ components:
               duration:
                 type: string
                 example: "120 Minute"
+              courseImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
               categoryId:
                 type: integer
                 example: 1
@@ -2743,6 +2878,24 @@ components:
               methodPayment:
                 type: string
                 example: "Credit Card"
+    CreatePaymentMidtrans:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              methodPayment:
+                type: string
+                example: "Credit Card"
+              cardNumber:
+                type: string
+                example: "4811111111111114"
+              cvv:
+                type: string
+                example: "123"
+              expiryDate:
+                type: string
+                example: "02/25"
   securitySchemes:
     bearerAuth:
       type: http

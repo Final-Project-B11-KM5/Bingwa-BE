@@ -5,8 +5,8 @@ const checkRole = require("../middlewares/checkRole");
 
 router.get("/", Auth, checkRole(["admin"]), getAllPayments);
 router.get("/history", Auth, checkRole(["user", "admin"]), getPaymentHistory);
-router.get("/:idCourse/course", getDetailPayment);
-router.post("/:idCourse/course", Auth, checkRole(["user", "admin"]), createPayment);
+router.get("/:idCourse", getDetailPayment);
+router.post("/:idCourse", Auth, checkRole(["user", "admin"]), createPayment);
 
 // payment midtrans
 router.post("/midtrans/:courseId", Auth, checkRole(["user", "admin"]), createPaymentMidtrans);

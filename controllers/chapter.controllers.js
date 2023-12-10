@@ -39,8 +39,14 @@ const getChapters = async (req, res, next) => {
         course: {
           select: {
             courseName: true,
+            category: {
+              select: {
+                categoryName: true,
+              },
+            },
           },
         },
+        lesson: true,
       },
     });
 
@@ -49,8 +55,8 @@ const getChapters = async (req, res, next) => {
       message: "Get chapters success",
       data: { chapters },
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
