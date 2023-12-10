@@ -627,6 +627,11 @@ paths:
       summary: Get all courses
       description: Get all courses
       parameters:
+        - name: search
+          in: query
+          description: search for get courses
+          schema:
+            type: string
         - name: filter
           in: query
           description: filter for get courses
