@@ -5,7 +5,8 @@ const getPagination = require("../utils/getPaggination");
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId, averageRating } = req.body;
+      const { price, isPremium, categoryId, promotionId, averageRating } =
+        req.body;
 
       if (averageRating !== undefined) {
         return res.status(400).json({
@@ -172,44 +173,80 @@ module.exports = {
 
   getMyCourse: async (req, res, next) => {
     try {
-      const { email } = req.user;
-      const { enrollment } = await prisma.user.findUnique({
+      const { id } = req.user;
+      const courseNotEnrol = await prisma.course.findMany({
         where: {
-          email: email,
-        },
-        include: {
           enrollment: {
+            none: {
+              userId: {
+                equals: Number(id),
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          courseName: true,
+          mentor: true,
+          averageRating: true,
+          duration: true,
+          level: true,
+          price: true,
+          category: {
             select: {
-              course: {
+              categoryName: true,
+            },
+          },
+        },
+      });
+
+      let courseEnrol = await prisma.enrollment.findMany({
+        where: {
+          userId: Number(id),
+        },
+        select: {
+          progres: true,
+          course: {
+            select: {
+              id: true,
+              courseName: true,
+              mentor: true,
+              averageRating: true,
+              duration: true,
+              level: true,
+              price: true,
+              category: {
                 select: {
-                  id: true,
-                  courseName: true,
-                  mentor: true,
-                  averageRating: true,
-                  duration: true,
-                  level: true,
-                  price: true,
-                  category: {
-                    select: {
-                      categoryName: true,
-                    },
-                  },
+                  categoryName: true,
                 },
               },
             },
           },
         },
       });
-      let courseUser = [];
-      enrollment.forEach((val) => {
-        courseUser.push(val["course"]);
-      });
+
+      // Show tracking course user
+      // let trackingCourse = [];
+      // let userTrack = {};
+      // tracking.forEach((val) => {
+      //   userTrack.id = val.id;
+      //   userTrack.progres = (100 / val.Tracking.length) * val._count.Tracking;
+      //   trackingCourse.push(userTrack);
+      //   userTrack = {};
+      // });
+
+      // console.log(trackingCourse);
+
+      // let countProgres = 100 / 100 / trueStatus;
+      // End Show tracking course user
+
       res.json({
         status: true,
         message: "Success",
-        data: courseUser,
+        data: { enrol: courseEnrol, notEnroll: courseNotEnrol },
       });
     } catch (error) {
+      console.log(error);
       next(error);
     }
   },
@@ -226,7 +263,10 @@ module.exports = {
           ...filterOptions[filter],
           where: {
             category: {
-              categoryName: typeof category !== "string" ? { in: [...category] } : { in: [category] },
+              categoryName:
+                typeof category !== "string"
+                  ? { in: [...category] }
+                  : { in: [category] },
             },
             ...(level && { level: level }),
           },
@@ -256,6 +296,13 @@ module.exports = {
       } else {
         const { limit = 10, page = 1 } = req.query;
         const courses = await prisma.course.findMany({
+          include: {
+            category: {
+              select: {
+                categoryName: true,
+              },
+            },
+          },
           skip: (Number(page) - 1) * Number(limit),
           take: Number(limit),
         });
@@ -264,7 +311,12 @@ module.exports = {
           _count: { id: true },
         });
 
-        const paggination = getPagination(req, _count.id, Number(page), Number(limit));
+        const paggination = getPagination(
+          req,
+          _count.id,
+          Number(page),
+          Number(limit)
+        );
 
         res.status(200).json({
           status: true,

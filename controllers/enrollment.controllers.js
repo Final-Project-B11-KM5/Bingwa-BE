@@ -72,6 +72,7 @@ module.exports = {
             data: {
               userId: Number(req.user.id),
               lessonId: lesson.id,
+              courseId:Number(courseId),
               status: false,
             },
             include: {
@@ -112,11 +113,10 @@ module.exports = {
           },
         },
       });
-
       return res.status(200).json({
         status: true,
         message: "Get all enrollments successful",
-        data: { enrollments },
+        data: { enrollments, trackingCourse },
       });
     } catch (err) {
       next(err);
@@ -182,10 +182,14 @@ module.exports = {
         });
       }
 
-      if (userRating !== undefined && (isNaN(userRating) || userRating < 1 || userRating > 5)) {
+      if (
+        userRating !== undefined &&
+        (isNaN(userRating) || userRating < 1 || userRating > 5)
+      ) {
         return res.status(400).json({
           status: false,
-          message: "Invalid userRating provided. It must be a number between 1 and 5.",
+          message:
+            "Invalid userRating provided. It must be a number between 1 and 5.",
           data: null,
         });
       }
@@ -214,8 +218,12 @@ module.exports = {
         where: { courseId: course.id, userRating: { not: null } },
       });
 
-      const totalRatings = enrollments.reduce((total, enrollment) => total + (enrollment.userRating || 0), 0);
-      const averageRating = enrollments.length > 0 ? totalRatings / enrollments.length : 0;
+      const totalRatings = enrollments.reduce(
+        (total, enrollment) => total + (enrollment.userRating || 0),
+        0
+      );
+      const averageRating =
+        enrollments.length > 0 ? totalRatings / enrollments.length : 0;
 
       let updatedCourse = await prisma.course.update({
         where: { id: course.id },
