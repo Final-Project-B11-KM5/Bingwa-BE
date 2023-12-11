@@ -26,8 +26,9 @@ module.exports = {
   },
 
   //membaca notifikasi
-  markNotification: async (notificationId) => {
+  markNotification: async (req, res, next) => {
     try {
+      const { notificationId } = req.params;
       const markNotifications = await prisma.notification.update({
         where: {
           id: notificationId,
