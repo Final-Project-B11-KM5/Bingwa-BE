@@ -36,7 +36,7 @@ module.exports = {
           isRead: true,
         },
       });
-      res.status(201).json({
+      res.status(200).json({
         status: true,
         message: "Notification has been seen",
         data: { markNotifications },
