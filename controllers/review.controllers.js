@@ -31,7 +31,19 @@ module.exports = {
       if (!enrollment) {
         return res.status(404).json({
           status: false,
-          message: "Enrollment not found",
+          message: "Please enroll in this course to review it",
+          data: null,
+        });
+      }
+
+      const existingReview = await prisma.review.findFirst({
+        where: { enrollmentId: enrollment.id },
+      });
+
+      if (existingReview) {
+        return res.status(400).json({
+          status: false,
+          message: "You have already submitted a review for this course",
           data: null,
         });
       }

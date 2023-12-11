@@ -693,7 +693,19 @@ paths:
                           courses:
                             type: array
                             items:
-                              $ref: "#/components/schemas/CourseModel"
+                              allOf:
+                                - $ref: "#/components/schemas/CourseModel"
+                                - type: object
+                                  properties:
+                                    category:
+                                      allOf:
+                                        - $ref: "#/components/schemas/CategoryModel"
+                          totalReviews:
+                            type: object
+                            properties:
+                              _count:
+                                type: integer
+                                example: 10
     post:
       tags:
         - Courses
@@ -787,7 +799,14 @@ paths:
                                               type: array
                                               items:
                                                 $ref: "#/components/schemas/LessonModel"
-
+                                  enrollment:
+                                    type: object
+                                    properties:
+                                      review:
+                                        type: array
+                                        items:
+                                          allOf:
+                                            - $ref: "#/components/schemas/ReviewModel"
         "400":
           description: Course Not Found
           content:

@@ -158,6 +158,11 @@ module.exports = {
               lesson: true,
             },
           },
+          enrollment: {
+            select: {
+              review: true,
+            },
+          },
         },
       });
       res.status(200).json({
@@ -266,10 +271,14 @@ module.exports = {
         },
       });
 
+      const totalReviews = await prisma.review.aggregate({
+        _count: true,
+      });
+
       return res.status(200).json({
         status: true,
         message: "Courses retrieved successfully",
-        data: { pagination, courses },
+        data: { pagination, courses, totalReviews },
       });
     } catch (err) {
       next(err);
