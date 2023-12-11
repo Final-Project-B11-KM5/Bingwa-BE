@@ -7,8 +7,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   // directUrl = env("DIRECT_URL")
 }
 
@@ -66,13 +66,13 @@ model Course {
   chapter          Chapter[]
   enrollment       Enrollment[]
   payment          Payment[]
-  lesson           Lesson[]
   user             User[]       @relation("UserToCourse")
   createdAt        DateTime     @default(now())
   categoryId       Int
   category         Category     @relation(fields: [categoryId], references: [id])
   promotionId      Int?
   promotion        Promotion?   @relation(fields: [promotionId], references: [id])
+  Tracking         Tracking[]
 }
 
 model Chapter {
@@ -91,10 +91,8 @@ model Lesson {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @default(now())
   chapterId  Int
-  courseId   Int?
-  tracking   Tracking?
+  tracking   Tracking[]
   chapter    Chapter   @relation(fields: [chapterId], references: [id])
-  Course     Course?   @relation(fields: [courseId], references: [id])
 }
 
 model Promotion {
@@ -119,10 +117,11 @@ model Enrollment {
   id         Int      @id @default(autoincrement())
   userRating Int?
   createAt   DateTime @default(now())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  courseId   Int
-  course     Course   @relation(fields: [courseId], references: [id])
+  userId     Int?
+  user       User?    @relation(fields: [userId], references: [id])
+  courseId   Int?     @unique
+  course     Course?  @relation(fields: [courseId], references: [id])
+  progres    Decimal  @default(0)
 }
 
 model Payment {
@@ -143,6 +142,8 @@ model Tracking {
   status   Boolean @default(false)
   userId   Int?
   user     User?   @relation(fields: [userId], references: [id])
-  lessonId Int?    @unique
+  lessonId Int?    
   lesson   Lesson? @relation(fields: [lessonId], references: [id])
+  courseId Int?
+  course   Course? @relation(fields: [courseId], references: [id])
 }
