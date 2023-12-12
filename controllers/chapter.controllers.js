@@ -3,12 +3,12 @@ const prisma = new PrismaClient();
 
 const createChapter = async (req, res, next) => {
   try {
-    const { name, courseId } = req.body;
+    const { name, courseId, duration } = req.body;
 
-    if (!name || !courseId) {
+    if (!name || !courseId || !duration) {
       return res.status(400).json({
         status: false,
-        message: "Please provide name, and courseId",
+        message: "Please provide name, courseId, and duration",
         data: null,
       });
     }
@@ -17,6 +17,7 @@ const createChapter = async (req, res, next) => {
       data: {
         name,
         courseId,
+        duration,
       },
     });
 
@@ -96,12 +97,12 @@ const getChapterById = async (req, res, next) => {
 const updateChapter = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, courseId } = req.body;
+    const { name, courseId, duration } = req.body;
 
-    if (!name || !courseId) {
+    if (!name || !courseId || !duration) {
       return res.status(400).json({
         status: false,
-        message: "Please provide name, and courseId",
+        message: "Please provide name, courseId, and duration",
         data: null,
       });
     }

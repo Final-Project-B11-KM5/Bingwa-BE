@@ -5,7 +5,8 @@ const getPagination = require("../utils/getPaggination");
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId, averageRating } = req.body;
+      const { price, isPremium, categoryId, promotionId, averageRating } =
+        req.body;
 
       if (averageRating !== undefined) {
         return res.status(400).json({
@@ -177,64 +178,130 @@ module.exports = {
 
   getMyCourse: async (req, res, next) => {
     try {
-      const { email } = req.user;
-      const { enrollment } = await prisma.user.findUnique({
+      const { id } = req.user;
+      let courseNotEnrol = await prisma.course.findMany({
         where: {
-          email: email,
-        },
-        include: {
           enrollment: {
-            select: {
-              course: {
-                select: {
-                  id: true,
-                  courseName: true,
-                  mentor: true,
-                  averageRating: true,
-                  duration: true,
-                  level: true,
-                  price: true,
-                  category: {
-                    select: {
-                      categoryName: true,
-                    },
-                  },
-                },
+            none: {
+              userId: {
+                equals: Number(id),
               },
             },
           },
         },
+        select: {
+          id: true,
+          courseName: true,
+          mentor: true,
+          averageRating: true,
+          duration: true,
+          level: true,
+          price: true,
+          category: {
+            select: {
+              id: true,
+              categoryName: true,
+            },
+          },
+          _count: {
+            select: {
+              chapter: true,
+            },
+          },
+        },
       });
-      let courseUser = [];
-      enrollment.forEach((val) => {
-        courseUser.push(val["course"]);
+
+      let courseEnrol = await prisma.course.findMany({
+        where: {
+          enrollment: {
+            some: {
+              userId: {
+                equals: Number(id),
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          courseName: true,
+          mentor: true,
+          averageRating: true,
+          duration: true,
+          level: true,
+          price: true,
+          category: {
+            select: {
+              id: true,
+              categoryName: true,
+            },
+          },
+          enrollment: {
+            select: {
+              id: true,
+              progres: true,
+            },
+          },
+          _count: {
+            select: {
+              chapter: true,
+            },
+          },
+        },
+      });
+
+      // Modify object property count to modul
+      courseEnrol = courseEnrol.map((val) => {
+        val["modul"] = val._count.chapter;
+        delete val["_count"];
+        return val;
+      });
+      courseNotEnrol = courseNotEnrol.map((val) => {
+        val["modul"] = val._count.chapter;
+        delete val["_count"];
+        return val;
       });
       res.json({
         status: true,
         message: "Success",
-        data: courseUser,
+        data: { enrol: courseEnrol, notEnroll: courseNotEnrol },
       });
     } catch (error) {
+      console.log(error);
       next(error);
     }
   },
 
   getCourse: async (req, res, next) => {
     try {
-      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
+      const {
+        search,
+        filter,
+        category,
+        level,
+        page = 1,
+        limit = 10,
+      } = req.query;
 
       const { _count } = await prisma.course.aggregate({
         _count: { id: true },
       });
 
-      const pagination = getPagination(req, _count.id, Number(page), Number(limit));
+      const pagination = getPagination(
+        req,
+        _count.id,
+        Number(page),
+        Number(limit)
+      );
 
       let coursesQuery = {
         where: {},
       };
 
       if (search) {
-        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
+        coursesQuery.where.OR = [
+          { courseName: { contains: search, mode: "insensitive" } },
+          { mentor: { contains: search, mode: "insensitive" } },
+        ];
       }
 
       if (filter) {
@@ -251,15 +318,19 @@ module.exports = {
       }
 
       if (category) {
-        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
-        coursesQuery.where.category = { categoryName: { in: categories, mode: "insensitive" } };
+        const categories = Array.isArray(category)
+          ? category.map((c) => c.toLowerCase())
+          : [category.toLowerCase()];
+        coursesQuery.where.category = {
+          categoryName: { in: categories, mode: "insensitive" },
+        };
       }
 
       if (level) {
         const levels = Array.isArray(level) ? level : [level];
         coursesQuery.where.level = { in: levels };
       }
-
+      
       let courses = await prisma.course.findMany({
         skip: (Number(page) - 1) * Number(limit),
         take: Number(limit),
@@ -268,7 +339,19 @@ module.exports = {
         include: {
           promotion: true,
           category: true,
+          _count: {
+            select: {
+              chapter: true,
+            },
+          },
         },
+      });
+
+      // Modify object property count to modul
+      courses = courses.map((val) => {
+        val["modul"] = val._count.chapter;
+        delete val["_count"];
+        return val;
       });
 
       const totalReviews = await prisma.review.aggregate({

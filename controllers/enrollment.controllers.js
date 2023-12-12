@@ -72,6 +72,7 @@ module.exports = {
             data: {
               userId: Number(req.user.id),
               lessonId: lesson.id,
+              courseId:Number(courseId),
               status: false,
             },
             include: {
@@ -112,11 +113,10 @@ module.exports = {
           },
         },
       });
-
       return res.status(200).json({
         status: true,
         message: "Get all enrollments successful",
-        data: { enrollments },
+        data: { enrollments, trackingCourse },
       });
     } catch (err) {
       next(err);
