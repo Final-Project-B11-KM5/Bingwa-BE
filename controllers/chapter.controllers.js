@@ -5,6 +5,14 @@ const createChapter = async (req, res, next) => {
   try {
     const { name, courseId } = req.body;
 
+    if (!name || !courseId) {
+      return res.status(400).json({
+        status: false,
+        message: "Please provide name, and courseId",
+        data: null,
+      });
+    }
+
     const newChapter = await prisma.chapter.create({
       data: {
         name,
@@ -88,6 +96,15 @@ const getChapterById = async (req, res, next) => {
 const updateChapter = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { name, courseId } = req.body;
+
+    if (!name || !courseId) {
+      return res.status(400).json({
+        status: false,
+        message: "Please provide name, and courseId",
+        data: null,
+      });
+    }
 
     const isExistChapter = await prisma.chapter.findUnique({
       where: {

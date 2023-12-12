@@ -5,6 +5,15 @@ module.exports = {
   createCategory: async (req, res, next) => {
     try {
       const { categoryName, categoryImg } = req.body;
+
+      if (!categoryName || !categoryImg) {
+        return res.status(400).json({
+          status: false,
+          message: "Please provide categoryName, and categoryImg",
+          data: null,
+        });
+      }
+
       let newCategory = await prisma.category.create({
         data: {
           categoryName,
@@ -43,6 +52,14 @@ module.exports = {
     try {
       const { idCategory } = req.params;
       const { categoryName, categoryImg } = req.body;
+
+      if (!categoryName || !categoryImg) {
+        return res.status(400).json({
+          status: false,
+          message: "Please provide categoryName, and categoryImg",
+          data: null,
+        });
+      }
 
       let editedCategory = await prisma.category.update({
         where: {
