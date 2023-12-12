@@ -159,6 +159,11 @@ module.exports = {
               lesson: true,
             },
           },
+          enrollment: {
+            select: {
+              review: true,
+            },
+          },
         },
       });
       res.status(200).json({
@@ -250,80 +255,68 @@ module.exports = {
       next(error);
     }
   },
+
   getCourse: async (req, res, next) => {
     try {
-      const { filter, category, level } = req.query;
-      if (filter || category || level) {
-        const filterOptions = {
-          populer: { orderBy: { rating: "desc" } },
-          terbaru: { orderBy: { createdAt: "desc" } },
-          promo: { where: { promotionId: { not: null } } },
-        };
-        const query = {
-          ...filterOptions[filter],
-          where: {
-            category: {
-              categoryName:
-                typeof category !== "string"
-                  ? { in: [...category] }
-                  : { in: [category] },
-            },
-            ...(level && { level: level }),
-          },
-        };
-        const courses = await prisma.course.findMany(query);
-        res.status(200).json({
-          status: true,
-          message: "Get Course Success",
-          data: courses,
-        });
-      } else if (req.query.search) {
-        const { search } = req.query;
-        const courses = await prisma.course.findMany({
-          where: {
-            courseName: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        });
+      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
 
-        res.status(200).json({
-          status: true,
-          message: "Get Course Success",
-          data: courses,
-        });
-      } else {
-        const { limit = 10, page = 1 } = req.query;
-        const courses = await prisma.course.findMany({
-          include: {
-            category: {
-              select: {
-                categoryName: true,
-              },
-            },
-          },
-          skip: (Number(page) - 1) * Number(limit),
-          take: Number(limit),
-        });
+      const { _count } = await prisma.course.aggregate({
+        _count: { id: true },
+      });
 
-        const { _count } = await prisma.course.aggregate({
-          _count: { id: true },
-        });
+      const pagination = getPagination(req, _count.id, Number(page), Number(limit));
 
-        const paggination = getPagination(
-          req,
-          _count.id,
-          Number(page),
-          Number(limit)
-        );
+      let coursesQuery = {
+        where: {},
+      };
 
-        res.status(200).json({
-          status: true,
-          message: "Show All Kelas successful",
-          data: { paggination, courses },
-        });
+      if (search) {
+        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
       }
+
+      if (filter) {
+        coursesQuery.orderBy = [];
+        if (filter.includes("newest")) {
+          coursesQuery.orderBy.push({ createdAt: "desc" });
+        }
+        if (filter.includes("populer")) {
+          coursesQuery.orderBy.push({ averageRating: "desc" });
+        }
+        if (filter.includes("promo")) {
+          coursesQuery.where.promotionId = { not: null };
+        }
+      }
+
+      if (category) {
+        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
+        coursesQuery.where.category = { categoryName: { in: categories, mode: "insensitive" } };
+      }
+
+      if (level) {
+        const levels = Array.isArray(level) ? level : [level];
+        coursesQuery.where.level = { in: levels };
+      }
+
+      let courses = await prisma.course.findMany({
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+        where: coursesQuery.where,
+        orderBy: coursesQuery.orderBy,
+        include: {
+          promotion: true,
+          category: true,
+        },
+      });
+
+      const totalReviews = await prisma.review.aggregate({
+        _count: true,
+      });
+
+      return res.status(200).json({
+        status: true,
+        message: "Courses retrieved successfully",
+        data: { pagination, courses, totalReviews },
+      });
     } catch (err) {
       next(err);
     }
