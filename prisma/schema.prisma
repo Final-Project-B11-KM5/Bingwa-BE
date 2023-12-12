@@ -7,9 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -79,6 +79,7 @@ model Chapter {
   id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
+  duration  String   @default("0")
   courseId  Int
   course    Course   @relation(fields: [courseId], references: [id])
   lesson    Lesson[]
@@ -119,10 +120,10 @@ model Enrollment {
   createAt   DateTime @default(now())
   userId     Int?
   user       User?    @relation(fields: [userId], references: [id])
-  courseId   Int?     @unique
+  courseId   Int?
   course     Course?  @relation(fields: [courseId], references: [id])
   progres    Decimal  @default(0)
-  review   Review?
+  review     Review?
 }
 
 model Payment {
