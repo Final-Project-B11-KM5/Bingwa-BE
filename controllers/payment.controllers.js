@@ -27,6 +27,13 @@ module.exports = {
           data: null,
         });
       }
+      if (!course.isPremium) {
+        return res.status(400).json({
+          status: false,
+          message: `Course Free Not Able to Buy`,
+          data: null,
+        });
+      }
       // end find course
 
       // check user alredy enroll course or not
@@ -219,17 +226,42 @@ module.exports = {
   },
   getPaymentHistory: async (req, res, next) => {
     try {
-      const payments = await prisma.payment.findMany({
+      let payments = await prisma.payment.findMany({
         where: {
           userId: Number(req.user.id),
         },
-        include: {
+        select: {
+          id: true,
+          status: true,
           course: {
-            include: {
-              category: true,
+            select: {
+              id: true,
+              courseName: true,
+              mentor: true,
+              averageRating: true,
+              duration: true,
+              level: true,
+              price: true,
+              category: {
+                select: {
+                  id: true,
+                  categoryName: true,
+                },
+              },
+              _count: {
+                select: {
+                  chapter: true,
+                },
+              },
             },
           },
         },
+      });
+      // Modify object property _count to modul
+      payments = payments.map((val) => {
+        val.course.modul = val.course._count.chapter;
+        delete val.course._count;
+        return val;
       });
 
       res.status(200).json({
@@ -250,7 +282,9 @@ module.exports = {
       let month = expiryDate.slice(0, 2);
       let year = expiryDate.slice(3);
 
-      const response = await axios.get(`https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
+      const response = await axios.get(
+        `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`
+      );
 
       const token_id = response.data.token_id;
 
@@ -317,7 +351,19 @@ module.exports = {
 
   handlePaymentNotification: async (req, res) => {
     try {
-      const { currency, fraud_status, gross_amount, order_id, payment_type, status_code, status_message, transaction_id, transaction_status, transaction_time, merchant_id } = req.body;
+      const {
+        currency,
+        fraud_status,
+        gross_amount,
+        order_id,
+        payment_type,
+        status_code,
+        status_message,
+        transaction_id,
+        transaction_status,
+        transaction_time,
+        merchant_id,
+      } = req.body;
 
       let core = new midtransClient.CoreApi({
         isProduction: false,
