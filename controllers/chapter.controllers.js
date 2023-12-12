@@ -3,12 +3,13 @@ const prisma = new PrismaClient();
 
 const createChapter = async (req, res, next) => {
   try {
-    const { name, courseId } = req.body;
+    const { name, courseId,duration } = req.body;
 
     const newChapter = await prisma.chapter.create({
       data: {
         name,
         courseId,
+        duration
       },
     });
 
@@ -88,7 +89,7 @@ const getChapterById = async (req, res, next) => {
 const updateChapter = async (req, res, next) => {
   try {
     const { id } = req.params;
-
+    console.log(req.body)
     const isExistChapter = await prisma.chapter.findUnique({
       where: {
         id: Number(id),
