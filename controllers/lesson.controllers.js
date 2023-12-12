@@ -24,6 +24,14 @@ const createLesson = async (req, res, next) => {
   try {
     const { lessonName, videoURL, chapterId } = req.body;
 
+    if (!lessonName || !videoURL || !chapterId) {
+      return res.status(400).json({
+        status: false,
+        message: "Please provide lessonName, videoURL, and chapterId",
+        data: null,
+      });
+    }
+
     const chapter = await findChapterById(chapterId);
 
     if (!chapter) {
@@ -137,6 +145,14 @@ const updateDetailLesson = async (req, res, next) => {
   try {
     const lessonId = req.params.id;
     const { lessonName, videoURL, chapterId } = req.body;
+
+    if (!lessonName || !videoURL || !chapterId) {
+      return res.status(400).json({
+        status: false,
+        message: "Please provide lessonName, videoURL, and chapterId",
+        data: null,
+      });
+    }
 
     const lesson = await findLessonById(lessonId);
 

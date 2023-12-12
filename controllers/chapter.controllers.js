@@ -3,13 +3,21 @@ const prisma = new PrismaClient();
 
 const createChapter = async (req, res, next) => {
   try {
-    const { name, courseId,duration } = req.body;
+    const { name, courseId, duration } = req.body;
+
+    if (!name || !courseId || !duration) {
+      return res.status(400).json({
+        status: false,
+        message: "Please provide name, courseId, and duration",
+        data: null,
+      });
+    }
 
     const newChapter = await prisma.chapter.create({
       data: {
         name,
         courseId,
-        duration
+        duration,
       },
     });
 
@@ -89,7 +97,16 @@ const getChapterById = async (req, res, next) => {
 const updateChapter = async (req, res, next) => {
   try {
     const { id } = req.params;
-    console.log(req.body)
+    const { name, courseId, duration } = req.body;
+
+    if (!name || !courseId || !duration) {
+      return res.status(400).json({
+        status: false,
+        message: "Please provide name, courseId, and duration",
+        data: null,
+      });
+    }
+
     const isExistChapter = await prisma.chapter.findUnique({
       where: {
         id: Number(id),
