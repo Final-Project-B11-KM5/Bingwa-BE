@@ -58,6 +58,7 @@ const createLesson = async (req, res, next) => {
           data: {
             userId: Number(enrollment.userId),
             lessonId: Number(newLesson.id),
+            courseId: Number(chapter.courseId),
             status: false,
           },
           include: {
