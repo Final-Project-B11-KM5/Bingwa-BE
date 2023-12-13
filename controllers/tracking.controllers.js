@@ -1,6 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+let reminderTimeout;
+
 module.exports = {
   updateTracking: async (req, res, next) => {
     try {
@@ -42,6 +44,7 @@ module.exports = {
         },
         data: {
           status: true,
+          updatedAt: new Date(),
         },
       });
 
@@ -84,6 +87,32 @@ module.exports = {
         },
       });
       // end update progres
+
+      if (reminderTimeout) {
+        clearTimeout(reminderTimeout);
+      }
+
+      const allTracking = await prisma.tracking.findMany({
+        where: { userId: Number(req.user.id), status: false },
+      });
+
+      if (allTracking.length > 0 && !allTracking[0].status) {
+        reminderTimeout = setTimeout(async () => {
+          const lastUpdate = new Date(tracking.updatedAt).getTime();
+          const currentTime = new Date().getTime();
+          const timeDifference = currentTime - lastUpdate;
+
+          if (timeDifference >= 60 * 1000) {
+            await prisma.notification.create({
+              data: {
+                title: "Reminder",
+                message: "You haven't updated your progress in the last 24 hours. Please continue learning.",
+                userId: Number(req.user.id),
+              },
+            });
+          }
+        }, 60 * 1000);
+      }
 
       res.status(200).json({
         status: true,

@@ -72,7 +72,7 @@ module.exports = {
             data: {
               userId: Number(req.user.id),
               lessonId: lesson.id,
-              courseId:Number(courseId),
+              courseId: Number(courseId),
               status: false,
             },
             include: {
@@ -85,6 +85,22 @@ module.exports = {
           });
         })
       );
+
+      setTimeout(async () => {
+        const allTracking = await prisma.tracking.findMany({
+          where: { userId: Number(req.user.id), status: true },
+        });
+
+        if (allTracking.length === 0 || !allTracking[0].status) {
+          await prisma.notification.create({
+            data: {
+              title: "Reminder",
+              message: "You have incomplete lessons. Please continue your learning.",
+              userId: Number(req.user.id),
+            },
+          });
+        }
+      }, 60 * 1000);
 
       res.status(201).json({
         status: true,
