@@ -55,7 +55,13 @@ const getChapters = async (req, res, next) => {
             },
           },
         },
-        lesson: true,
+        lesson: {
+          select: {
+            lessonName: true,
+            videoURL: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -78,7 +84,13 @@ const getChapterById = async (req, res, next) => {
         id: Number(id),
       },
       include: {
-        lesson: true,
+        lesson: {
+          select: {
+            lessonName: true,
+            videoURL: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
