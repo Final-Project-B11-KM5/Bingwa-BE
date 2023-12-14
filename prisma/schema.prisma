@@ -115,15 +115,14 @@ model Notification {
 }
 
 model Enrollment {
-  id         Int      @id @default(autoincrement())
-  userRating Int?
-  createAt   DateTime @default(now())
-  userId     Int?
-  user       User?    @relation(fields: [userId], references: [id])
-  courseId   Int?
-  course     Course?  @relation(fields: [courseId], references: [id])
-  progres    Decimal  @default(0)
-  review     Review?
+  id       Int      @id @default(autoincrement())
+  createAt DateTime @default(now())
+  userId   Int?
+  user     User?    @relation(fields: [userId], references: [id])
+  courseId Int?
+  course   Course?  @relation(fields: [courseId], references: [id])
+  progres  Decimal  @default(0)
+  review   Review?
 }
 
 model Payment {

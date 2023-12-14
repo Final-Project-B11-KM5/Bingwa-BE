@@ -100,7 +100,7 @@ module.exports = {
             },
           });
         }
-      }, 60 * 1000);
+      }, 24 * 60 * 60 * 1000);
 
       res.status(201).json({
         status: true,
@@ -118,11 +118,32 @@ module.exports = {
         where: { userId: req.user.id },
         include: {
           course: {
-            include: {
-              category: true,
+            select: {
+              courseName: true,
+              level: true,
+              mentor: true,
+              duration: true,
+              courseImg: true,
+              createdAt: true,
+              categoryId: true,
+              category: {
+                select: {
+                  categoryName: true,
+                },
+              },
               chapter: {
-                include: {
-                  lesson: true,
+                select: {
+                  id: true,
+                  name: true,
+                  createdAt: true,
+                  duration: true,
+                  lesson: {
+                    select: {
+                      lessonName: true,
+                      videoURL: true,
+                      createdAt: true,
+                    },
+                  },
                 },
               },
             },
@@ -132,7 +153,7 @@ module.exports = {
       return res.status(200).json({
         status: true,
         message: "Get all enrollments successful",
-        data: { enrollments, trackingCourse },
+        data: { enrollments },
       });
     } catch (err) {
       next(err);
@@ -155,11 +176,32 @@ module.exports = {
         where: { id: Number(enrollmentId) },
         include: {
           course: {
-            include: {
-              category: true,
+            select: {
+              courseName: true,
+              level: true,
+              mentor: true,
+              duration: true,
+              courseImg: true,
+              createdAt: true,
+              categoryId: true,
+              category: {
+                select: {
+                  categoryName: true,
+                },
+              },
               chapter: {
-                include: {
-                  lesson: true,
+                select: {
+                  id: true,
+                  name: true,
+                  createdAt: true,
+                  duration: true,
+                  lesson: {
+                    select: {
+                      lessonName: true,
+                      videoURL: true,
+                      createdAt: true,
+                    },
+                  },
                 },
               },
             },

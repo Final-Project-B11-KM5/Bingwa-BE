@@ -5,8 +5,7 @@ const getPagination = require("../utils/getPaggination");
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId, averageRating } =
-        req.body;
+      const { price, isPremium, categoryId, promotionId, averageRating } = req.body;
 
       if (averageRating !== undefined) {
         return res.status(400).json({
@@ -155,13 +154,27 @@ module.exports = {
             },
           },
           chapter: {
-            include: {
-              lesson: true,
+            select: {
+              name: true,
+              duration: true,
+              lesson: {
+                select: {
+                  lessonName: true,
+                  videoURL: true,
+                  createdAt: true,
+                },
+              },
             },
           },
           enrollment: {
             select: {
-              review: true,
+              review: {
+                select: {
+                  userRating: true,
+                  userComment: true,
+                  createdAt: true,
+                },
+              },
             },
           },
         },
@@ -273,35 +286,20 @@ module.exports = {
 
   getCourse: async (req, res, next) => {
     try {
-      const {
-        search,
-        filter,
-        category,
-        level,
-        page = 1,
-        limit = 10,
-      } = req.query;
+      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
 
       const { _count } = await prisma.course.aggregate({
         _count: { id: true },
       });
 
-      const pagination = getPagination(
-        req,
-        _count.id,
-        Number(page),
-        Number(limit)
-      );
+      const pagination = getPagination(req, _count.id, Number(page), Number(limit));
 
       let coursesQuery = {
         where: {},
       };
 
       if (search) {
-        coursesQuery.where.OR = [
-          { courseName: { contains: search, mode: "insensitive" } },
-          { mentor: { contains: search, mode: "insensitive" } },
-        ];
+        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
       }
 
       if (filter) {
@@ -318,9 +316,7 @@ module.exports = {
       }
 
       if (category) {
-        const categories = Array.isArray(category)
-          ? category.map((c) => c.toLowerCase())
-          : [category.toLowerCase()];
+        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
         coursesQuery.where.category = {
           categoryName: { in: categories, mode: "insensitive" },
         };
@@ -330,15 +326,25 @@ module.exports = {
         const levels = Array.isArray(level) ? level : [level];
         coursesQuery.where.level = { in: levels };
       }
-      
+
       let courses = await prisma.course.findMany({
         skip: (Number(page) - 1) * Number(limit),
         take: Number(limit),
         where: coursesQuery.where,
         orderBy: coursesQuery.orderBy,
         include: {
-          promotion: true,
-          category: true,
+          promotion: {
+            select: {
+              discount: true,
+              startDate: true,
+              endDate: true,
+            },
+          },
+          category: {
+            select: {
+              categoryName: true,
+            },
+          },
           _count: {
             select: {
               chapter: true,
@@ -361,7 +367,7 @@ module.exports = {
       return res.status(200).json({
         status: true,
         message: "Courses retrieved successfully",
-        data: { pagination, courses, totalReviews },
+        data: { pagination, courses, totalReviews: totalReviews._count },
       });
     } catch (err) {
       next(err);
