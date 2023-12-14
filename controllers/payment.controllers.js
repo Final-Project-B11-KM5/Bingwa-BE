@@ -244,7 +244,6 @@ module.exports = {
               price: true,
               category: {
                 select: {
-                  id: true,
                   categoryName: true,
                 },
               },
@@ -282,9 +281,7 @@ module.exports = {
       let month = expiryDate.slice(0, 2);
       let year = expiryDate.slice(3);
 
-      const response = await axios.get(
-        `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`
-      );
+      const response = await axios.get(`https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
 
       const token_id = response.data.token_id;
 
@@ -351,19 +348,7 @@ module.exports = {
 
   handlePaymentNotification: async (req, res) => {
     try {
-      const {
-        currency,
-        fraud_status,
-        gross_amount,
-        order_id,
-        payment_type,
-        status_code,
-        status_message,
-        transaction_id,
-        transaction_status,
-        transaction_time,
-        merchant_id,
-      } = req.body;
+      const { currency, fraud_status, gross_amount, order_id, payment_type, status_code, status_message, transaction_id, transaction_status, transaction_time, merchant_id } = req.body;
 
       let core = new midtransClient.CoreApi({
         isProduction: false,

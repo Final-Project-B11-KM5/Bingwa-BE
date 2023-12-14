@@ -102,7 +102,7 @@ module.exports = {
           const currentTime = new Date().getTime();
           const timeDifference = currentTime - lastUpdate;
 
-          if (timeDifference >= 60 * 1000) {
+          if (timeDifference >= 24 * 60 * 60 * 1000) {
             await prisma.notification.create({
               data: {
                 title: "Reminder",
@@ -111,7 +111,7 @@ module.exports = {
               },
             });
           }
-        }, 60 * 1000);
+        }, 24 * 60 * 60 * 1000);
       }
 
       res.status(200).json({

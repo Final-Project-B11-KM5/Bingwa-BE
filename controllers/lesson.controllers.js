@@ -97,10 +97,16 @@ const getAllLessons = async (req, res, next) => {
       },
       include: {
         chapter: {
-          include: {
+          select: {
+            name: true,
             course: {
-              include: {
-                category: true,
+              select: {
+                courseName: true,
+                category: {
+                  select: {
+                    categoryName: true,
+                  },
+                },
               },
             },
           },
