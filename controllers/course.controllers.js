@@ -348,26 +348,48 @@ module.exports = {
           _count: {
             select: {
               chapter: true,
+              enrollment: {
+                include: {
+                  _count: {
+                    select: {
+                      review: {
+                        select: {
+                          id: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          enrollment: {
+            select: {
+              review: {
+                select: {
+                  userRating: true,
+                  userComment: true,
+                  createdAt: true,
+                },
+              },
             },
           },
         },
       });
 
-      // Modify object property count to modul
       courses = courses.map((val) => {
         val["modul"] = val._count.chapter;
+        val["totalReviews"] = val.enrollment.reduce((sum, enrollment) => {
+          return sum + (enrollment.review ? 1 : 0);
+        }, 0);
         delete val["_count"];
         return val;
-      });
-
-      const totalReviews = await prisma.review.aggregate({
-        _count: true,
       });
 
       return res.status(200).json({
         status: true,
         message: "Courses retrieved successfully",
-        data: { pagination, courses, totalReviews: totalReviews._count },
+        data: { pagination, courses },
       });
     } catch (err) {
       next(err);
