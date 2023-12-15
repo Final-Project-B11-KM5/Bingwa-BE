@@ -698,14 +698,38 @@ paths:
                                 - type: object
                                   properties:
                                     category:
-                                      allOf:
-                                        - $ref: "#/components/schemas/CategoryModel"
-                          totalReviews:
-                            type: object
-                            properties:
-                              _count:
-                                type: integer
-                                example: 10
+                                      type: object
+                                      properties:
+                                        categoryName:
+                                          type: string
+                                          example: "UI/UX Design"
+                                        categoryImg:
+                                          type: string
+                                          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
+                                    enrollment:
+                                      type: array
+                                      items:
+                                        allOf:
+                                          - type: object
+                                            properties:
+                                              review:
+                                                type: object
+                                                properties:
+                                                  userRating:
+                                                    type: integer
+                                                    example: 5
+                                                  userComment:
+                                                    type: string
+                                                    example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
+                                                  createdAt:
+                                                    type: string
+                                                    example: "2023-11-24T01:11:59.133Z"
+                                    modul:
+                                      type: integer
+                                      example: 5
+                                    totalReviews:
+                                      type: integer
+                                      example: 10
     post:
       tags:
         - Courses
