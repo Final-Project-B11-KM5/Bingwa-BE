@@ -5,7 +5,8 @@ const getPagination = require("../utils/getPaggination");
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId, averageRating } = req.body;
+      const { price, isPremium, categoryId, promotionId, averageRating } =
+        req.body;
 
       if (averageRating !== undefined) {
         return res.status(400).json({
@@ -177,8 +178,16 @@ module.exports = {
               },
             },
           },
+          _count: {
+            select: {
+              chapter: true,
+            },
+          },
         },
       });
+      // Modify object property count to modul
+      course["modul"] = course._count.chapter;
+      delete course["_count"];
       res.status(200).json({
         status: true,
         message: ` Detail Kelas with id:${idCourse} successful`,
@@ -192,6 +201,71 @@ module.exports = {
   getMyCourse: async (req, res, next) => {
     try {
       const { id } = req.user;
+      const {
+        search,
+        filter,
+        category,
+        level,
+        page = 1,
+        limit = 10,
+      } = req.query;
+
+      const countEnrollCourse = await prisma.course.count({
+        where: {
+          enrollment: {
+            some: {
+              userId: {
+                equals: Number(id),
+              },
+            },
+          },
+        },
+      });
+
+      const pagination = getPagination(
+        req,
+        countEnrollCourse,
+        Number(page),
+        Number(limit)
+      );
+
+      let coursesQuery = {
+        where: {},
+      };
+
+      if (search) {
+        coursesQuery.where.OR = [
+          { courseName: { contains: search, mode: "insensitive" } },
+          { mentor: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      if (filter) {
+        coursesQuery.orderBy = [];
+        if (filter.includes("newest")) {
+          coursesQuery.orderBy.push({ createdAt: "desc" });
+        }
+        if (filter.includes("populer")) {
+          coursesQuery.orderBy.push({ averageRating: "desc" });
+        }
+        if (filter.includes("promo")) {
+          coursesQuery.where.promotionId = { not: null };
+        }
+      }
+
+      if (category) {
+        const categories = Array.isArray(category)
+          ? category.map((c) => c.toLowerCase())
+          : [category.toLowerCase()];
+        coursesQuery.where.category = {
+          categoryName: { in: categories, mode: "insensitive" },
+        };
+      }
+
+      if (level) {
+        const levels = Array.isArray(level) ? level : [level];
+        coursesQuery.where.level = { in: levels };
+      }
       let courseNotEnrol = await prisma.course.findMany({
         where: {
           enrollment: {
@@ -224,7 +298,7 @@ module.exports = {
         },
       });
 
-      let courseEnrol = await prisma.course.findMany({
+      let course = await prisma.course.findMany({
         where: {
           enrollment: {
             some: {
@@ -233,6 +307,7 @@ module.exports = {
               },
             },
           },
+          ...coursesQuery.where
         },
         select: {
           id: true,
@@ -242,6 +317,7 @@ module.exports = {
           duration: true,
           level: true,
           price: true,
+          isPremium:true,
           category: {
             select: {
               id: true,
@@ -263,7 +339,7 @@ module.exports = {
       });
 
       // Modify object property count to modul
-      courseEnrol = courseEnrol.map((val) => {
+      course = course.map((val) => {
         val["modul"] = val._count.chapter;
         delete val["_count"];
         return val;
@@ -276,30 +352,118 @@ module.exports = {
       res.json({
         status: true,
         message: "Success",
-        data: { enrol: courseEnrol, notEnroll: courseNotEnrol },
+        data: { course,pagination },
       });
     } catch (error) {
       console.log(error);
       next(error);
     }
   },
+  detailMyCourse: async (req, res, next) => {
+    try {
+      const { idCourse } = req.params;
+      const findCourse = await prisma.enrollment.findFirst({
+        where: {
+          courseId: Number(idCourse),
+          userId: req.user.id,
+        },
+      });
+      if (!findCourse) {
+        return res.status(400).json({
+          status: false,
+          message: "You Not Enroll this course ",
+          data: null,
+        });
+      }
+      const course = await prisma.course.findFirst({
+        where: {
+          enrollment: {
+            some: {
+              userId: {
+                equals: Number(req.user.id),
+              },
+              courseId: {
+                equals: Number(idCourse),
+              },
+            },
+          },
+        },
+        include: {
+          category: {
+            select: {
+              categoryName: true,
+            },
+          },
+          enrollment: {
+            select: {
+              progres: true,
+            },
+          },
+          chapter: {
+            select: {
+              name: true,
+              lesson: {
+                include: {
+                  tracking: {
+                    select: {
+                      status: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              chapter: true,
+            },
+          },
+        },
+      });
+      // Modify object property count to modul
+      course["modul"] = course._count.chapter;
+      delete course["_count"];
 
+      res.status(200).json({
+        status:true,
+        message:'Succes to Show detail Course',
+        data: course,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
   getCourse: async (req, res, next) => {
     try {
-      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
+      const {
+        search,
+        filter,
+        category,
+        level,
+        page = 1,
+        limit = 10,
+      } = req.query;
 
       const { _count } = await prisma.course.aggregate({
         _count: { id: true },
       });
 
-      const pagination = getPagination(req, _count.id, Number(page), Number(limit));
+      const pagination = getPagination(
+        req,
+        _count.id,
+        Number(page),
+        Number(limit)
+      );
 
       let coursesQuery = {
         where: {},
       };
 
       if (search) {
-        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
+        coursesQuery.where.OR = [
+          { courseName: { contains: search, mode: "insensitive" } },
+          { mentor: { contains: search, mode: "insensitive" } },
+        ];
       }
 
       if (filter) {
@@ -316,7 +480,9 @@ module.exports = {
       }
 
       if (category) {
-        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
+        const categories = Array.isArray(category)
+          ? category.map((c) => c.toLowerCase())
+          : [category.toLowerCase()];
         coursesQuery.where.category = {
           categoryName: { in: categories, mode: "insensitive" },
         };

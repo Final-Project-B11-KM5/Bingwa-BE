@@ -178,7 +178,7 @@ module.exports = {
     try {
       const { search } = req.query;
 
-      const payments = await prisma.payment.findMany({
+      let payments = await prisma.payment.findMany({
         where: {
           OR: [
             { status: { contains: search, mode: "insensitive" } },
@@ -201,18 +201,29 @@ module.exports = {
             },
           ],
         },
-        include: {
-          user: {
-            include: {
-              userProfile: true,
-            },
-          },
+        select: {
+          id: true,
+          status: true,
+          createAt: true,
+          methodPayment: true,
           course: {
-            include: {
-              category: true,
+            select: {
+              courseName: true,
+              category: {
+                select: {
+                  categoryName: true,
+                },
+              },
             },
           },
         },
+      });
+      payments = payments.map((val) => {
+        let localDate = new Date(val.createAt);
+        let timeString = localDate.toLocaleTimeString();
+        let dateString = localDate.toDateString();
+        val.createAt = `${dateString},${timeString}`;
+        return val;
       });
 
       res.status(200).json({
@@ -281,7 +292,9 @@ module.exports = {
       let month = expiryDate.slice(0, 2);
       let year = expiryDate.slice(3);
 
-      const response = await axios.get(`https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
+      const response = await axios.get(
+        `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`
+      );
 
       const token_id = response.data.token_id;
 
@@ -348,7 +361,19 @@ module.exports = {
 
   handlePaymentNotification: async (req, res) => {
     try {
-      const { currency, fraud_status, gross_amount, order_id, payment_type, status_code, status_message, transaction_id, transaction_status, transaction_time, merchant_id } = req.body;
+      const {
+        currency,
+        fraud_status,
+        gross_amount,
+        order_id,
+        payment_type,
+        status_code,
+        status_message,
+        transaction_id,
+        transaction_status,
+        transaction_time,
+        merchant_id,
+      } = req.body;
 
       let core = new midtransClient.CoreApi({
         isProduction: false,

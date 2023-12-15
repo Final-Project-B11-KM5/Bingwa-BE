@@ -45,13 +45,16 @@ const createLesson = async (req, res, next) => {
     const users = await prisma.user.findMany();
 
     const enrollments = await prisma.enrollment.findMany({
-      where: { userId: { in: users.map((user) => user.id) } },
+      where: {
+        userId: { in: users.map((user) => user.id) },
+        courseId: chapter.courseId,
+      },
     });
-
     const newLesson = await prisma.lesson.create({
       data: { lessonName, videoURL, chapterId },
     });
 
+    // menambahkan fitur update progres jika sudah enrol course
     const trackingRecords = await Promise.all(
       enrollments.map(async (enrollment) => {
         return prisma.tracking.create({
@@ -91,8 +94,20 @@ const getAllLessons = async (req, res, next) => {
         OR: [
           { lessonName: { contains: search, mode: "insensitive" } },
           { chapter: { name: { contains: search, mode: "insensitive" } } },
-          { chapter: { course: { courseName: { contains: search, mode: "insensitive" } } } },
-          { chapter: { course: { category: { categoryName: { contains: search, mode: "insensitive" } } } } },
+          {
+            chapter: {
+              course: { courseName: { contains: search, mode: "insensitive" } },
+            },
+          },
+          {
+            chapter: {
+              course: {
+                category: {
+                  categoryName: { contains: search, mode: "insensitive" },
+                },
+              },
+            },
+          },
         ],
       },
       include: {
