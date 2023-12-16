@@ -19,7 +19,8 @@ module.exports = {
       if (createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
-          message: "createdAt or updateAt cannot be provided during payment creation",
+          message:
+            "createdAt or updateAt cannot be provided during payment creation",
           data: null,
         });
       }
@@ -95,6 +96,7 @@ module.exports = {
           data: {
             userId: Number(req.user.id),
             courseId: Number(idCourse),
+            createAt: formattedDate(new Date()),
           },
         });
 
@@ -133,6 +135,7 @@ module.exports = {
           data: { newPayment },
         });
       } catch (err) {
+        console.log(err);
         res.status(400).json({
           status: false,
           message: "Error When Create Payment,make sure request is valid type",
@@ -232,13 +235,13 @@ module.exports = {
           },
         },
       });
-      payments = payments.map((val) => {
-        let localDate = new Date(val.createAt);
-        let timeString = localDate.toLocaleTimeString();
-        let dateString = localDate.toDateString();
-        val.createAt = `${dateString},${timeString}`;
-        return val;
-      });
+      // payments = payments.map((val) => {
+      //   let localDate = new Date(val.createAt);
+      //   let timeString = localDate.toLocaleTimeString();
+      //   let dateString = localDate.toDateString();
+      //   val.createAt = `${dateString},${timeString}`;
+      //   return val;
+      // });
 
       res.status(200).json({
         status: true,
@@ -306,7 +309,9 @@ module.exports = {
       let month = expiryDate.slice(0, 2);
       let year = expiryDate.slice(3);
 
-      const response = await axios.get(`https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
+      const response = await axios.get(
+        `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`
+      );
 
       const token_id = response.data.token_id;
 
