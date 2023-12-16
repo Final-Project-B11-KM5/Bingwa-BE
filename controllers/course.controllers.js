@@ -1,28 +1,22 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const getPagination = require("../utils/getPaggination");
+const { formattedDate } = require("../utils/formattedDate");
 
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId, averageRating } =
-        req.body;
+      const { price, isPremium, categoryId, promotionId, averageRating, createdAt, updatedAt } = req.body;
 
-      if (averageRating !== undefined) {
+      if (isPremium !== undefined || averageRating !== undefined || createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
-          message: "averageRating cannot be provided during course creation",
+          message: "isPremium, averageRating, createdAt, or updateAt cannot be provided during course creation",
           data: null,
         });
       }
 
-      if (!isPremium && price) {
-        return res.status(400).json({
-          status: false,
-          message: "free class price must be 0",
-          data: null,
-        });
-      }
+      const updatedIsPremium = price > 0 ? true : false;
 
       let category = await prisma.category.findUnique({
         where: { id: Number(categoryId) },
@@ -53,6 +47,9 @@ module.exports = {
       let newCourse = await prisma.course.create({
         data: {
           ...req.body,
+          isPremium: updatedIsPremium,
+          createdAt: formattedDate(new Date()),
+          updatedAt: formattedDate(new Date()),
         },
       });
 
@@ -70,7 +67,7 @@ module.exports = {
     try {
       const { idCourse } = req.params;
 
-      const { averageRating } = req.body;
+      const { price, isPremium, averageRating, createdAt, updatedAt } = req.body;
 
       const checkCourse = await prisma.course.findFirst({
         where: {
@@ -85,13 +82,15 @@ module.exports = {
         });
       }
 
-      if (averageRating !== undefined) {
+      if (isPremium !== undefined || averageRating !== undefined || createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
-          message: "averageRating cannot be provided during course creation",
+          message: "isPremium, averageRating, createdAt, or updateAt cannot be provided during course update",
           data: null,
         });
       }
+
+      const updatedIsPremium = price > 0 ? true : false;
 
       let editedCourse = await prisma.course.update({
         where: {
@@ -99,6 +98,8 @@ module.exports = {
         },
         data: {
           ...req.body,
+          isPremium: updatedIsPremium,
+          updatedAt: formattedDate(new Date()),
         },
       });
       return res.status(200).json({
@@ -201,14 +202,7 @@ module.exports = {
   getMyCourse: async (req, res, next) => {
     try {
       const { id } = req.user;
-      const {
-        search,
-        filter,
-        category,
-        level,
-        page = 1,
-        limit = 10,
-      } = req.query;
+      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
 
       const countEnrollCourse = await prisma.course.count({
         where: {
@@ -222,22 +216,14 @@ module.exports = {
         },
       });
 
-      const pagination = getPagination(
-        req,
-        countEnrollCourse,
-        Number(page),
-        Number(limit)
-      );
+      const pagination = getPagination(req, countEnrollCourse, Number(page), Number(limit));
 
       let coursesQuery = {
         where: {},
       };
 
       if (search) {
-        coursesQuery.where.OR = [
-          { courseName: { contains: search, mode: "insensitive" } },
-          { mentor: { contains: search, mode: "insensitive" } },
-        ];
+        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
       }
 
       if (filter) {
@@ -254,9 +240,7 @@ module.exports = {
       }
 
       if (category) {
-        const categories = Array.isArray(category)
-          ? category.map((c) => c.toLowerCase())
-          : [category.toLowerCase()];
+        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
         coursesQuery.where.category = {
           categoryName: { in: categories, mode: "insensitive" },
         };
@@ -437,35 +421,14 @@ module.exports = {
   },
   getCourse: async (req, res, next) => {
     try {
-      const {
-        search,
-        filter,
-        category,
-        level,
-        page = 1,
-        limit = 10,
-      } = req.query;
-
-      const { _count } = await prisma.course.aggregate({
-        _count: { id: true },
-      });
-
-      const pagination = getPagination(
-        req,
-        _count.id,
-        Number(page),
-        Number(limit)
-      );
+      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
 
       let coursesQuery = {
         where: {},
       };
 
       if (search) {
-        coursesQuery.where.OR = [
-          { courseName: { contains: search, mode: "insensitive" } },
-          { mentor: { contains: search, mode: "insensitive" } },
-        ];
+        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
       }
 
       if (filter) {
@@ -479,12 +442,16 @@ module.exports = {
         if (filter.includes("promo")) {
           coursesQuery.where.promotionId = { not: null };
         }
+        if (filter.includes("premium")) {
+          coursesQuery.where.isPremium = true;
+        }
+        if (filter.includes("free")) {
+          coursesQuery.where.isPremium = false;
+        }
       }
 
       if (category) {
-        const categories = Array.isArray(category)
-          ? category.map((c) => c.toLowerCase())
-          : [category.toLowerCase()];
+        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
         coursesQuery.where.category = {
           categoryName: { in: categories, mode: "insensitive" },
         };
@@ -533,6 +500,7 @@ module.exports = {
           },
           enrollment: {
             select: {
+              progres: true,
               review: {
                 select: {
                   userRating: true,
@@ -544,6 +512,9 @@ module.exports = {
           },
         },
       });
+
+      const totalCourses = courses.length;
+      const pagination = getPagination(req, totalCourses, Number(page), Number(limit));
 
       courses = courses.map((val) => {
         val["modul"] = val._count.chapter;

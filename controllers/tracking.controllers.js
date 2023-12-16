@@ -1,17 +1,28 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const { formattedDate } = require("../utils/formattedDate");
+
 let reminderTimeout;
 
 module.exports = {
   updateTracking: async (req, res, next) => {
     try {
       const lessonId = req.params.lessonId;
+      const { createdAt, updatedAt } = req.body;
 
       if (isNaN(lessonId) || lessonId <= 0) {
         return res.status(400).json({
           status: false,
           message: "Invalid lessonId parameter",
+          data: null,
+        });
+      }
+
+      if (createdAt !== undefined || updatedAt !== undefined) {
+        return res.status(400).json({
+          status: false,
+          message: "createdAt or updateAt cannot be provided during tracking update",
           data: null,
         });
       }
@@ -84,6 +95,7 @@ module.exports = {
         },
         data: {
           progres: newProgres.toFixed(1),
+          updatedAt: formattedDate(new Date()),
         },
       });
       // end update progres
@@ -108,6 +120,7 @@ module.exports = {
                 title: "Reminder",
                 message: "You haven't updated your progress in the last 24 hours. Please continue learning.",
                 userId: Number(req.user.id),
+                createdAt: formattedDate(new Date()),
               },
             });
           }

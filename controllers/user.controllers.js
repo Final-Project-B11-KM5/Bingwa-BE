@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 
 const { generatedOTP } = require("../utils/otpGenerator");
 const nodemailer = require("../utils/nodemailer");
+const { formattedDate } = require("../utils/formattedDate");
 const { JWT_SECRET_KEY } = process.env;
 
 module.exports = {
@@ -325,6 +326,7 @@ module.exports = {
             title: "Notifikasi",
             message: "Password berhasil diubah!",
             userId: updateUser.id,
+            createdAt: formattedDate(new Date()),
           },
         });
 
@@ -418,6 +420,7 @@ module.exports = {
           title: "Notification",
           message: "Password successfully changed!",
           userId: req.user.id,
+          createdAt: formattedDate(new Date()),
         },
       });
 

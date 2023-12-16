@@ -1,6 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const { formattedDate } = require("../utils/formattedDate");
+
 module.exports = {
   courseEnrollment: async (req, res, next) => {
     try {
@@ -74,6 +76,8 @@ module.exports = {
               lessonId: lesson.id,
               courseId: Number(courseId),
               status: false,
+              createdAt: formattedDate(new Date()),
+              updatedAt: formattedDate(new Date()),
             },
             include: {
               lesson: {
@@ -97,6 +101,7 @@ module.exports = {
               title: "Reminder",
               message: "You have incomplete lessons. Please continue your learning.",
               userId: Number(req.user.id),
+              createdAt: formattedDate(new Date()),
             },
           });
         }

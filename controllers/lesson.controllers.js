@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { formattedDate } = require("../utils/formattedDate");
 
 const findChapterById = async (chapterId) => {
   return await prisma.chapter.findUnique({
@@ -22,12 +23,20 @@ const findLessonById = async (lessonId) => {
 
 const createLesson = async (req, res, next) => {
   try {
-    const { lessonName, videoURL, chapterId } = req.body;
+    const { lessonName, videoURL, chapterId, createdAt, updatedAt } = req.body;
 
     if (!lessonName || !videoURL || !chapterId) {
       return res.status(400).json({
         status: false,
         message: "Please provide lessonName, videoURL, and chapterId",
+        data: null,
+      });
+    }
+
+    if (createdAt !== undefined || updatedAt !== undefined) {
+      return res.status(400).json({
+        status: false,
+        message: "createdAt or updateAt cannot be provided during lesson creation",
         data: null,
       });
     }
@@ -51,7 +60,13 @@ const createLesson = async (req, res, next) => {
       },
     });
     const newLesson = await prisma.lesson.create({
-      data: { lessonName, videoURL, chapterId },
+      data: {
+        lessonName,
+        videoURL,
+        chapterId,
+        createdAt: formattedDate(new Date()),
+        updatedAt: formattedDate(new Date()),
+      },
     });
 
     // menambahkan fitur update progres jika sudah enrol course
@@ -63,6 +78,8 @@ const createLesson = async (req, res, next) => {
             lessonId: Number(newLesson.id),
             courseId: Number(chapter.courseId),
             status: false,
+            createdAt: formattedDate(new Date()),
+            updatedAt: formattedDate(new Date()),
           },
           include: {
             lesson: {
@@ -166,12 +183,20 @@ const getDetailLesson = async (req, res, next) => {
 const updateDetailLesson = async (req, res, next) => {
   try {
     const lessonId = req.params.id;
-    const { lessonName, videoURL, chapterId } = req.body;
+    const { lessonName, videoURL, chapterId, createdAt, updatedAt } = req.body;
 
     if (!lessonName || !videoURL || !chapterId) {
       return res.status(400).json({
         status: false,
         message: "Please provide lessonName, videoURL, and chapterId",
+        data: null,
+      });
+    }
+
+    if (createdAt !== undefined || updatedAt !== undefined) {
+      return res.status(400).json({
+        status: false,
+        message: "createdAt or updateAt cannot be provided during lesson update",
         data: null,
       });
     }
@@ -202,7 +227,7 @@ const updateDetailLesson = async (req, res, next) => {
         lessonName,
         videoURL,
         chapterId,
-        updatedAt: new Date(),
+        updatedAt: formattedDate(new Date()),
       },
     });
 
