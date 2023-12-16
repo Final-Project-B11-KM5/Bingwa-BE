@@ -4,6 +4,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const nodemailer = require("../utils/nodemailer");
+const { formattedDate } = require("../utils/formattedDate");
 
 const { PAYMENT_CLIENT_KEY, PAYMENT_SERVER_KEY } = process.env;
 
@@ -11,9 +12,18 @@ module.exports = {
   createPayment: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
-      const { methodPayment } = req.body;
+      const { methodPayment, createdAt, updatedAt } = req.body;
       let PPN = 11 / 100;
       let amount;
+
+      if (createdAt !== undefined || updatedAt !== undefined) {
+        return res.status(400).json({
+          status: false,
+          message: "createdAt or updateAt cannot be provided during payment creation",
+          data: null,
+        });
+      }
+
       // find Course
       let course = await prisma.course.findFirst({
         where: {
@@ -71,6 +81,8 @@ module.exports = {
             userId: Number(req.user.id),
             status: "paid",
             methodPayment,
+            createAt: formattedDate(new Date()),
+            updatedAt: formattedDate(new Date()),
           },
         });
         const html = await nodemailer.getHtml("transaction-succes.ejs", {
@@ -101,6 +113,8 @@ module.exports = {
                 userId: Number(req.user.id),
                 lessonId: lesson.id,
                 status: false,
+                createdAt: formattedDate(new Date()),
+                updatedAt: formattedDate(new Date()),
               },
               include: {
                 lesson: {
@@ -292,9 +306,7 @@ module.exports = {
       let month = expiryDate.slice(0, 2);
       let year = expiryDate.slice(3);
 
-      const response = await axios.get(
-        `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`
-      );
+      const response = await axios.get(`https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
 
       const token_id = response.data.token_id;
 
@@ -361,20 +373,6 @@ module.exports = {
 
   handlePaymentNotification: async (req, res) => {
     try {
-      const {
-        currency,
-        fraud_status,
-        gross_amount,
-        order_id,
-        payment_type,
-        status_code,
-        status_message,
-        transaction_id,
-        transaction_status,
-        transaction_time,
-        merchant_id,
-      } = req.body;
-
       let core = new midtransClient.CoreApi({
         isProduction: false,
         serverKey: PAYMENT_SERVER_KEY,
@@ -382,17 +380,17 @@ module.exports = {
       });
 
       let notification = {
-        currency,
-        fraud_status,
-        gross_amount,
-        order_id,
-        payment_type,
-        status_code,
-        status_message,
-        transaction_id,
-        transaction_status,
-        transaction_time,
-        merchant_id,
+        currency: req.body.currency,
+        fraud_status: req.body.fraud_status,
+        gross_amount: req.body.gross_amount,
+        order_id: req.body.order_id,
+        payment_type: req.body.payment_type,
+        status_code: req.body.status_code,
+        status_message: req.body.status_message,
+        transaction_id: req.body.transaction_id,
+        transaction_status: req.body.transaction_status,
+        transaction_time: req.body.transaction_time,
+        merchant_id: req.body.merchant_id,
       };
 
       let data = await core.transaction.notification(notification);
