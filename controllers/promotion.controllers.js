@@ -1,11 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-formatDate = (dateISO) => {
-  let dateObject = new Date(dateISO);
-  let options = { year: "numeric", month: "long", day: "numeric" };
-  return dateObject.toLocaleDateString("id-ID", options);
-};
+const { formattedDate } = require("../utils/formattedDate");
 
 createPromotion = async (req, res, next) => {
   try {
@@ -18,8 +14,8 @@ createPromotion = async (req, res, next) => {
       });
     }
 
-    let formattedStartDate = formatDate(startDate);
-    let formattedEndDate = formatDate(endDate);
+    let formattedStartDate = formattedDate(startDate);
+    let formattedEndDate = formattedDate(endDate);
 
     const newPromotion = await prisma.promotion.create({
       data: { discount, startDate: formattedStartDate, endDate: formattedEndDate },
@@ -34,6 +30,7 @@ createPromotion = async (req, res, next) => {
             title: "Promo",
             message: `Diskon ${discount * 100}% berlaku dari ${formattedStartDate} sampai ${formattedEndDate}`,
             userId: Number(user.id),
+            createdAt: formattedDate(new Date()),
           },
           include: {
             user: {

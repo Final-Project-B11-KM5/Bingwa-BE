@@ -2,14 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  provider = "prisma-client-js"
+  // binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -67,7 +67,8 @@ model Course {
   enrollment       Enrollment[]
   payment          Payment[]
   user             User[]       @relation("UserToCourse")
-  createdAt        DateTime     @default(now())
+  createdAt        String
+  updatedAt        String
   categoryId       Int
   category         Category     @relation(fields: [categoryId], references: [id])
   promotionId      Int?
@@ -78,7 +79,8 @@ model Course {
 model Chapter {
   id        Int      @id @default(autoincrement())
   name      String
-  createdAt DateTime @default(now())
+  createdAt String
+  updatedAt String
   duration  String   @default("0")
   courseId  Int
   course    Course   @relation(fields: [courseId], references: [id])
@@ -89,8 +91,8 @@ model Lesson {
   id         Int        @id @default(autoincrement())
   lessonName String
   videoURL   String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @default(now())
+  createdAt  String
+  updatedAt  String
   chapterId  Int
   tracking   Tracking[]
   chapter    Chapter    @relation(fields: [chapterId], references: [id])
@@ -105,57 +107,57 @@ model Promotion {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   title     String
   message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  isRead    Boolean @default(false)
+  createdAt String
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
 }
 
 model Enrollment {
-  id       Int      @id @default(autoincrement())
-  createAt DateTime @default(now())
+  id       Int     @id @default(autoincrement())
+  createAt String
   userId   Int?
-  user     User?    @relation(fields: [userId], references: [id])
+  user     User?   @relation(fields: [userId], references: [id])
   courseId Int?
-  course   Course?  @relation(fields: [courseId], references: [id])
-  progres  Decimal  @default(0)
+  course   Course? @relation(fields: [courseId], references: [id])
+  progres  Decimal @default(0)
   review   Review?
 }
 
 model Payment {
-  id            Int      @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   amount        Int
-  status        String   @default("Unpaid")
+  status        String @default("Unpaid")
   methodPayment String
-  createAt      DateTime @default(now())
-  updatedAt     DateTime @default(now())
+  createAt      String
+  updatedAt     String
   userId        Int
-  user          User     @relation(fields: [userId], references: [id])
+  user          User   @relation(fields: [userId], references: [id])
   courseId      Int
-  course        Course   @relation(fields: [courseId], references: [id])
+  course        Course @relation(fields: [courseId], references: [id])
 }
 
 model Tracking {
-  id        Int      @id @default(autoincrement())
-  status    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id        Int     @id @default(autoincrement())
+  status    Boolean @default(false)
+  createdAt String
+  updatedAt String
   userId    Int?
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User?   @relation(fields: [userId], references: [id])
   lessonId  Int?
-  lesson    Lesson?  @relation(fields: [lessonId], references: [id])
+  lesson    Lesson? @relation(fields: [lessonId], references: [id])
   courseId  Int?
-  course    Course?  @relation(fields: [courseId], references: [id])
+  course    Course? @relation(fields: [courseId], references: [id])
 }
 
 model Review {
   id           Int        @id @default(autoincrement())
   userRating   Int
   userComment  String?
-  createdAt    DateTime   @default(now())
+  createdAt    String
   enrollmentId Int        @unique
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
 }

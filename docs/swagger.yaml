@@ -691,7 +691,7 @@ paths:
                         type: object
                         properties:
                           Pagination:
-                            $ref: "#/components/schemas/Pagination"  
+                            $ref: "#/components/schemas/Pagination"
                           courses:
                             type: array
                             items:
@@ -781,7 +781,6 @@ paths:
                     type: string
                     example: "failed"
   /courses/me:
-
     get:
       tags:
         - Courses
@@ -835,7 +834,7 @@ paths:
                         type: object
                         properties:
                           Pagination:
-                            $ref: "#/components/schemas/Pagination"  
+                            $ref: "#/components/schemas/Pagination"
                           courseEnrol:
                             type: array
                             items:
@@ -847,7 +846,7 @@ paths:
                                       allOf:
                                         - $ref: "#/components/schemas/CategoryModel"
   /courses/{courseId}/me:
-    get :
+    get:
       tags:
         - Courses
       operationId: get-courseEnrolUser-by-id
@@ -892,11 +891,11 @@ paths:
                                               items:
                                                 $ref: "#/components/schemas/LessonModel"
                                   category:
-                                      allOf:
-                                        - $ref: "#/components/schemas/CategoryModel"
-                                    
+                                    allOf:
+                                      - $ref: "#/components/schemas/CategoryModel"
+
         "400":
-          description: You Not Enroll this course 
+          description: You Not Enroll this course
           content:
             application/json:
               schema:
@@ -2437,13 +2436,13 @@ paths:
                         properties:
                           countUser:
                             type: integer
-                            example : 2
-                          allCourse :
-                            type : integer
-                            example : 4
-                          coursePremium :
+                            example: 2
+                          allCourse:
                             type: integer
-                            example : 1
+                            example: 4
+                          coursePremium:
+                            type: integer
+                            example: 1
 components:
   schemas:
     BasicResponse:
@@ -2554,14 +2553,14 @@ components:
       title: Category
       type: object
       properties:
-        id : 
+        id:
           type: integer
-          example : 1
+          example: 1
         categoryName:
           type: string
           example: "UI/UX Design"
         categoryImg:
-          type : string
+          type: string
           example: "https://images.unsplash.com/photo-1600087626120-062700394a01?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     CourseModel:
       title: Course
@@ -2619,9 +2618,9 @@ components:
         promotionId:
           type: integer
           example: 1
-        modul :
-          type : integer
-          example: 2 
+        modul:
+          type: integer
+          example: 2
     ChapterModel:
       title: Chapter
       type: object
@@ -2640,7 +2639,7 @@ components:
           example: 1
     DetailCourseModelEnroll:
       title: Course
-      type: object  
+      type: object
       properties:
         id:
           type: integer
@@ -2694,20 +2693,20 @@ components:
         promotionId:
           type: integer
           example: 1
-        modul :
-          type : integer
-          example: 2 
-        enrollment : 
+        modul:
+          type: integer
+          example: 2
+        enrollment:
           type: array
           items:
-              type: object
-              properties: 
-                id:
-                  type: integer
-                  example: 1
-                progres:
-                  type: string
-                  example: "33.3"
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              progres:
+                type: string
+                example: "33.3"
     CourseModelEnroll:
       title: Course
       type: object
@@ -2745,26 +2744,26 @@ components:
         category:
           type: object
           properties:
-            id :
+            id:
               type: integer
               example: 1
             categoryName:
               type: string
-              example : "Web Development"
-        enrollment : 
+              example: "Web Development"
+        enrollment:
           type: array
           items:
-              type: object
-              properties: 
-                id:
-                  type: integer
-                  example: 1
-                progres:
-                  type: string
-                  example: "33.3"
-        modul :
-          type : integer
-          example: 2 
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              progres:
+                type: string
+                example: "33.3"
+        modul:
+          type: integer
+          example: 2
     LessonModel:
       title: Lesson
       type: object
@@ -3043,9 +3042,6 @@ components:
               mentor:
                 type: string
                 example: "Simon Doe"
-              isPremium:
-                type: boolean
-                example: true
               videoURL:
                 type: string
                 example: "https://youtu.be/ixOd42SEUF0"
@@ -3091,9 +3087,6 @@ components:
               mentor:
                 type: string
                 example: "Simon Doe"
-              isPremium:
-                type: boolean
-                example: true
               videoURL:
                 type: string
                 example: "https://youtu.be/ixOd42SEUF0"
