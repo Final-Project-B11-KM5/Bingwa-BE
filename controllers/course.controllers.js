@@ -300,6 +300,8 @@ module.exports = {
 
       let course = await prisma.course.findMany({
         where: {
+          skip: (Number(page) - 1) * Number(limit),
+          take: Number(limit),
           enrollment: {
             some: {
               userId: {
@@ -307,7 +309,7 @@ module.exports = {
               },
             },
           },
-          ...coursesQuery.where
+          ...coursesQuery.where,
         },
         select: {
           id: true,
@@ -317,7 +319,7 @@ module.exports = {
           duration: true,
           level: true,
           price: true,
-          isPremium:true,
+          isPremium: true,
           category: {
             select: {
               id: true,
@@ -352,7 +354,7 @@ module.exports = {
       res.json({
         status: true,
         message: "Success",
-        data: { course,pagination },
+        data: { course, pagination },
       });
     } catch (error) {
       console.log(error);
@@ -425,8 +427,8 @@ module.exports = {
       delete course["_count"];
 
       res.status(200).json({
-        status:true,
-        message:'Succes to Show detail Course',
+        status: true,
+        message: "Succes to Show detail Course",
         data: course,
       });
     } catch (err) {
