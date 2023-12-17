@@ -34,7 +34,7 @@ const getPagination = (req, count, page, limit) => {
   }
 
   if (page > 1) {
-    link.prev = `${path}page=${page - 1}&limit=${limit}`;
+    link.prev = `${path}page=${Number(page) - 1}&limit=${limit}`;
   } else {
     link.prev = "";
   }
