@@ -358,6 +358,47 @@ module.exports = {
 
       let transaction = await core.charge(parameter);
 
+      const html = await nodemailer.getHtml("transaction-succes.ejs", {
+        course: course.courseName,
+      });
+      nodemailer.sendEmail(req.user.email, "Email Transaction", html);
+
+      await prisma.enrollment.create({
+        data: {
+          userId: Number(req.user.id),
+          courseId: Number(courseId),
+        },
+      });
+
+      const lessons = await prisma.lesson.findMany({
+        where: {
+          chapter: {
+            courseId: Number(courseId),
+          },
+        },
+      });
+
+      await Promise.all(
+        lessons.map(async (lesson) => {
+          return prisma.tracking.create({
+            data: {
+              userId: Number(req.user.id),
+              lessonId: lesson.id,
+              status: false,
+              createdAt: formattedDate(new Date()),
+              updatedAt: formattedDate(new Date()),
+            },
+            include: {
+              lesson: {
+                select: {
+                  lessonName: true,
+                },
+              },
+            },
+          });
+        })
+      );
+
       res.status(201).json({
         status: true,
         message: "Payment initiated successfully",
