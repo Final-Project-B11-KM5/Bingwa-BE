@@ -108,7 +108,7 @@ CREATE TABLE "Notification" (
 -- CreateTable
 CREATE TABLE "Enrollment" (
     "id" SERIAL NOT NULL,
-    "createAt" TEXT NOT NULL,
+    "createdAt" TEXT NOT NULL,
     "userId" INTEGER,
     "courseId" INTEGER,
     "progres" DECIMAL(65,30) NOT NULL DEFAULT 0,
@@ -122,7 +122,7 @@ CREATE TABLE "Payment" (
     "amount" INTEGER NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'Unpaid',
     "methodPayment" TEXT NOT NULL,
-    "createAt" TEXT NOT NULL,
+    "createdAt" TEXT NOT NULL,
     "updatedAt" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,
     "courseId" INTEGER NOT NULL,

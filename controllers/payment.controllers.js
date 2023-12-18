@@ -6,7 +6,15 @@ const prisma = new PrismaClient();
 const nodemailer = require("../utils/nodemailer");
 const { formattedDate } = require("../utils/formattedDate");
 
-const { PAYMENT_CLIENT_KEY, PAYMENT_SERVER_KEY } = process.env;
+const { PAYMENT_DEV_CLIENT_KEY, PAYMENT_DEV_SERVER_KEY, PAYMENT_PROD_CLIENT_KEY, PAYMENT_PROD_SERVER_KEY } = process.env;
+
+const isProduction = false;
+let core = new midtransClient.CoreApi({
+  // Set to true if you want Production Environment (accept real transaction).
+  isProduction: isProduction,
+  serverKey: isProduction ? PAYMENT_PROD_SERVER_KEY : PAYMENT_DEV_SERVER_KEY,
+  clientKey: isProduction ? PAYMENT_PROD_CLIENT_KEY : PAYMENT_DEV_CLIENT_KEY,
+});
 
 module.exports = {
   createPayment: async (req, res, next) => {
@@ -81,7 +89,7 @@ module.exports = {
             userId: Number(req.user.id),
             status: "paid",
             methodPayment,
-            createAt: formattedDate(new Date()),
+            createdAt: formattedDate(new Date()),
             updatedAt: formattedDate(new Date()),
           },
         });
@@ -95,6 +103,7 @@ module.exports = {
           data: {
             userId: Number(req.user.id),
             courseId: Number(idCourse),
+            createdAt: formattedDate(new Date()),
           },
         });
 
@@ -144,6 +153,7 @@ module.exports = {
       next(err);
     }
   },
+
   getDetailPayment: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
@@ -188,6 +198,7 @@ module.exports = {
       next(err);
     }
   },
+
   getAllPayments: async (req, res, next) => {
     try {
       const { search } = req.query;
@@ -218,7 +229,7 @@ module.exports = {
         select: {
           id: true,
           status: true,
-          createAt: true,
+          createdAt: true,
           methodPayment: true,
           course: {
             select: {
@@ -233,10 +244,10 @@ module.exports = {
         },
       });
       payments = payments.map((val) => {
-        let localDate = new Date(val.createAt);
+        let localDate = new Date(val.createdAt);
         let timeString = localDate.toLocaleTimeString();
         let dateString = localDate.toDateString();
-        val.createAt = `${dateString},${timeString}`;
+        val.createdAt = `${dateString},${timeString}`;
         return val;
       });
 
@@ -249,6 +260,7 @@ module.exports = {
       next(err);
     }
   },
+
   getPaymentHistory: async (req, res, next) => {
     try {
       let payments = await prisma.payment.findMany({
@@ -301,21 +313,24 @@ module.exports = {
   createPaymentMidtrans: async (req, res, next) => {
     try {
       const courseId = req.params.courseId;
-      const { methodPayment, cardNumber, cvv, expiryDate, bankName } = req.body;
+      const { methodPayment, cardNumber, cvv, expiryDate, bankName, createdAt, updatedAt } = req.body;
+
+      if (createdAt !== undefined || updatedAt !== undefined) {
+        return res.status(400).json({
+          status: false,
+          message: "createdAt or updateAt cannot be provided during payment creation",
+          data: null,
+        });
+      }
 
       let month = expiryDate.slice(0, 2);
       let year = expiryDate.slice(3);
 
-      const response = await axios.get(`https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_CLIENT_KEY}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
+      const apiUrl = isProduction ? `https://api.midtrans.com/v2/token?client_key=${PAYMENT_PROD_CLIENT_KEY}` : `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_DEV_CLIENT_KEY}`;
+
+      const response = await axios.get(`${apiUrl}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
 
       const token_id = response.data.token_id;
-
-      let core = new midtransClient.CoreApi({
-        // Set to true if you want Production Environment (accept real transaction).
-        isProduction: false,
-        serverKey: PAYMENT_SERVER_KEY,
-        clientKey: PAYMENT_CLIENT_KEY,
-      });
 
       const user = await prisma.user.findUnique({
         where: { id: Number(req.user.id) },
@@ -328,6 +343,37 @@ module.exports = {
         where: { id: Number(courseId) },
       });
 
+      if (!course) {
+        return res.status(404).json({
+          status: false,
+          message: `Course Not Found With Id ${courseId}`,
+          data: null,
+        });
+      }
+
+      if (!course.isPremium) {
+        return res.status(400).json({
+          status: false,
+          message: `Course Free Not Able to Buy`,
+          data: null,
+        });
+      }
+
+      const enrollmentUser = await prisma.enrollment.findFirst({
+        where: {
+          courseId: Number(courseId),
+          userId: Number(req.user.id),
+        },
+      });
+
+      if (enrollmentUser) {
+        return res.status(400).json({
+          status: false,
+          message: `User Alrady Enroll this Course`,
+          data: null,
+        });
+      }
+
       const totalPrice = (course.price * 0, 11) + course.price;
 
       let newPayment = await prisma.payment.create({
@@ -336,6 +382,8 @@ module.exports = {
           methodPayment,
           courseId: Number(courseId),
           userId: Number(req.user.id),
+          createdAt: formattedDate(new Date()),
+          updatedAt: formattedDate(new Date()),
         },
       });
 
@@ -397,6 +445,7 @@ module.exports = {
         data: {
           userId: Number(req.user.id),
           courseId: Number(courseId),
+          createdAt: formattedDate(new Date()),
         },
       });
 
@@ -444,12 +493,6 @@ module.exports = {
 
   handlePaymentNotification: async (req, res) => {
     try {
-      let core = new midtransClient.CoreApi({
-        isProduction: false,
-        serverKey: PAYMENT_SERVER_KEY,
-        clientKey: PAYMENT_CLIENT_KEY,
-      });
-
       let notification = {
         currency: req.body.currency,
         fraud_status: req.body.fraud_status,
@@ -471,7 +514,7 @@ module.exports = {
         data: {
           status: "Paid",
           methodPayment: data.payment_type,
-          updatedAt: new Date(),
+          updatedAt: formattedDate(new Date()),
         },
       });
 
