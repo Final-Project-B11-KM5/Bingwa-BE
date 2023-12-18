@@ -4,10 +4,20 @@ const prisma = new PrismaClient();
 module.exports = {
   createCategory: async (req, res, next) => {
     try {
-      const { categoryName } = req.body;
+      const { categoryName, categoryImg } = req.body;
+
+      if (!categoryName || !categoryImg) {
+        return res.status(400).json({
+          status: false,
+          message: "Please provide categoryName, and categoryImg",
+          data: null,
+        });
+      }
+
       let newCategory = await prisma.category.create({
         data: {
           categoryName,
+          categoryImg,
         },
       });
       return res.status(201).json({
@@ -41,7 +51,15 @@ module.exports = {
   editCategory: async (req, res, next) => {
     try {
       const { idCategory } = req.params;
-      const { categoryName } = req.body;
+      const { categoryName, categoryImg } = req.body;
+
+      if (!categoryName || !categoryImg) {
+        return res.status(400).json({
+          status: false,
+          message: "Please provide categoryName, and categoryImg",
+          data: null,
+        });
+      }
 
       let editedCategory = await prisma.category.update({
         where: {
@@ -49,6 +67,7 @@ module.exports = {
         },
         data: {
           categoryName,
+          categoryImg,
         },
       });
       res.status(200).json({
@@ -64,11 +83,25 @@ module.exports = {
   deleteCategory: async (req, res, next) => {
     try {
       const { idCategory } = req.params;
-      let deletedCategory = await prisma.category.delete({
+
+      const category = await prisma.category.findUnique({
+        where: { id: Number(idCategory) },
+      });
+
+      if (!category) {
+        res.status(404).json({
+          status: false,
+          message: "Category Not Found",
+          data: null,
+        });
+      }
+
+      const deletedCategory = await prisma.category.delete({
         where: {
           id: Number(idCategory),
         },
       });
+
       res.status(200).json({
         status: true,
         message: "delete category successful",

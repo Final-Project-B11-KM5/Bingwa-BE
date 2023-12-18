@@ -2,35 +2,39 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  provider = "prisma-client-js"
+  // binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  email        String         @unique
-  password     String
-  otp          String
-  otpCreatedAt DateTime
-  isVerified   Boolean        @default(false)
-  role         String         @default("user")
-  courses      Course[]       @relation("UserToCourse")
-  userProfile  UserProfile?
-  notification Notification[]
-  enrollment   Enrollment[]
+  id                 Int            @id @default(autoincrement())
+  email              String         @unique
+  password           String?
+  otp                String?
+  otpCreatedAt       DateTime?
+  isVerified         Boolean        @default(false)
+  role               String         @default("user")
+  resetPasswordToken String?
+  googleId           String?
+  courses            Course[]       @relation("UserToCourse")
+  tracking           Tracking[]
+  userProfile        UserProfile?
+  notification       Notification[]
+  enrollment         Enrollment[]
+  payment            Payment[]
 }
 
 model UserProfile {
   id             Int     @id @default(autoincrement())
   profilePicture String?
   fullName       String
-  phoneNumber    String  @unique
+  phoneNumber    String? @unique
   city           String?
   country        String?
   userId         Int     @unique
@@ -40,6 +44,7 @@ model UserProfile {
 model Category {
   id           Int      @id @default(autoincrement())
   categoryName String   @unique
+  categoryImg  String?
   course       Course[]
 }
 
@@ -57,33 +62,40 @@ model Course {
   videoURL         String
   forumURL         String
   duration         String
+  courseImg        String?
   chapter          Chapter[]
   enrollment       Enrollment[]
+  payment          Payment[]
   user             User[]       @relation("UserToCourse")
-  createdAt        DateTime     @default(now())
+  createdAt        String
+  updatedAt        String
   categoryId       Int
   category         Category     @relation(fields: [categoryId], references: [id])
   promotionId      Int?
   promotion        Promotion?   @relation(fields: [promotionId], references: [id])
+  Tracking         Tracking[]
 }
 
 model Chapter {
   id        Int      @id @default(autoincrement())
   name      String
-  createdAt DateTime @default(now())
+  createdAt String
+  updatedAt String
+  duration  String   @default("0")
   courseId  Int
   course    Course   @relation(fields: [courseId], references: [id])
   lesson    Lesson[]
 }
 
 model Lesson {
-  id         Int      @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   lessonName String
   videoURL   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
+  createdAt  String
+  updatedAt  String
   chapterId  Int
-  chapter    Chapter  @relation(fields: [chapterId], references: [id])
+  tracking   Tracking[]
+  chapter    Chapter    @relation(fields: [chapterId], references: [id])
 }
 
 model Promotion {
@@ -95,21 +107,57 @@ model Promotion {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   title     String
   message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  isRead    Boolean @default(false)
+  createdAt String
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
 }
 
 model Enrollment {
-  id         Int      @id @default(autoincrement())
-  userRating Int?
-  createAt   DateTime @default(now())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  courseId   Int
-  course     Course   @relation(fields: [courseId], references: [id])
+  id       Int     @id @default(autoincrement())
+  createAt String
+  userId   Int?
+  user     User?   @relation(fields: [userId], references: [id])
+  courseId Int?
+  course   Course? @relation(fields: [courseId], references: [id])
+  progres  Decimal @default(0)
+  review   Review?
+}
+
+model Payment {
+  id            Int    @id @default(autoincrement())
+  amount        Int
+  status        String @default("Unpaid")
+  methodPayment String
+  createAt      String
+  updatedAt     String
+  userId        Int
+  user          User   @relation(fields: [userId], references: [id])
+  courseId      Int
+  course        Course @relation(fields: [courseId], references: [id])
+}
+
+model Tracking {
+  id        Int     @id @default(autoincrement())
+  status    Boolean @default(false)
+  createdAt String
+  updatedAt String
+  userId    Int?
+  user      User?   @relation(fields: [userId], references: [id])
+  lessonId  Int?
+  lesson    Lesson? @relation(fields: [lessonId], references: [id])
+  courseId  Int?
+  course    Course? @relation(fields: [courseId], references: [id])
+}
+
+model Review {
+  id           Int        @id @default(autoincrement())
+  userRating   Int
+  userComment  String?
+  createdAt    String
+  enrollmentId Int        @unique
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
 }

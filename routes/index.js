@@ -12,6 +12,11 @@ const Chapter = require("./chapter.routes");
 const Lesson = require("./lesson.routes");
 const Enrollment = require("./enrollment.routes");
 const Promotion = require("./promotion.routes");
+const Payment = require("./payment.routes");
+const Notification = require("./notification.routes");
+const Tracking = require("./tracking.routes");
+const Review = require("./review.routes");
+const Admin = require("./admin.routes");
 
 const swagger_path = path.resolve(__dirname, "../docs/swagger.yaml");
 const customCssUrl =
@@ -39,5 +44,10 @@ router.use("/api/v1/chapters", Chapter);
 router.use("/api/v1/lessons", Lesson);
 router.use("/api/v1/enrollments", Enrollment);
 router.use("/api/v1/promotions", Promotion);
+router.use("/api/v1/payments", Payment);
+router.use("/api/v1/notifications", Notification);
+router.use("/api/v1/trackings", Tracking);
+router.use("/api/v1/reviews", Review);
+router.use("/api/v1/admin", Admin);
 
 module.exports = router;

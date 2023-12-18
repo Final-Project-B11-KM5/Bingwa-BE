@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 
 const { generatedOTP } = require("../utils/otpGenerator");
 const nodemailer = require("../utils/nodemailer");
+const { formattedDate } = require("../utils/formattedDate");
 const { JWT_SECRET_KEY } = process.env;
 
 module.exports = {
@@ -12,6 +13,23 @@ module.exports = {
     try {
       let { fullName, email, phoneNumber, password } = req.body;
       const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+      const emailValidator = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!fullName || !email || !phoneNumber || !password) {
+        return res.status(400).json({
+          status: false,
+          message: "All fields are required.",
+          data: null,
+        });
+      }
+
+      if (fullName.length > 50) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid full name length. It must be at most 50 characters.",
+          data: null,
+        });
+      }
 
       const existingUser = await prisma.user.findFirst({
         where: {
@@ -23,6 +41,14 @@ module.exports = {
         return res.status(409).json({
           status: false,
           message: "Email or phone number already exists",
+          data: null,
+        });
+      }
+
+      if (!emailValidator.test(email)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid email format.",
           data: null,
         });
       }
@@ -226,7 +252,7 @@ module.exports = {
         });
       }
 
-      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY);
+      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY, { expiresIn: "1h" });
       const html = await nodemailer.getHtml("email-password-reset.ejs", {
         email,
         token,
@@ -267,7 +293,19 @@ module.exports = {
       }
 
       let encryptedPassword = await bcrypt.hash(password, 10);
-
+      // check Token Is already used or not
+      const user = await prisma.user.findFirst({
+        where: {
+          resetPasswordToken: token,
+        },
+      });
+      if (user) {
+        return res.status(400).json({
+          status: false,
+          message: "Token Is Alredy Use , generate new token to reset password",
+        });
+      }
+      // end check Token Is already used or not
       jwt.verify(token, JWT_SECRET_KEY, async (err, decoded) => {
         if (err) {
           return res.status(400).json({
@@ -280,7 +318,7 @@ module.exports = {
 
         let updateUser = await prisma.user.update({
           where: { email: decoded.email },
-          data: { password: encryptedPassword },
+          data: { password: encryptedPassword, resetPasswordToken: token },
         });
 
         let newNotification = await prisma.notification.create({
@@ -288,6 +326,7 @@ module.exports = {
             title: "Notifikasi",
             message: "Password berhasil diubah!",
             userId: updateUser.id,
+            createdAt: formattedDate(new Date()),
           },
         });
 
@@ -298,6 +337,7 @@ module.exports = {
         });
       });
     } catch (err) {
+      console.log(err);
       next(err);
     }
   },
@@ -332,6 +372,14 @@ module.exports = {
   changePasswordUser: async (req, res, next) => {
     try {
       const { oldPassword, newPassword, newPasswordConfirmation } = req.body;
+
+      if (!oldPassword || !newPassword || !newPasswordConfirmation) {
+        return res.status(400).json({
+          status: false,
+          message: "Please provide oldPassword, newPassword, and newPasswordConfirmation",
+          data: null,
+        });
+      }
 
       let isOldPasswordCorrect = await bcrypt.compare(oldPassword, req.user.password);
       if (!isOldPasswordCorrect) {
@@ -372,6 +420,7 @@ module.exports = {
           title: "Notification",
           message: "Password successfully changed!",
           userId: req.user.id,
+          createdAt: formattedDate(new Date()),
         },
       });
 
@@ -383,5 +432,16 @@ module.exports = {
     } catch (err) {
       next(err);
     }
+  },
+
+  googleOauth2: (req, res) => {
+    let token = jwt.sign({ id: req.user.id }, JWT_SECRET_KEY);
+
+    return res.status(200).json({
+      status: true,
+      message: "OK",
+      err: null,
+      data: { user: req.user, token },
+    });
   },
 };

@@ -1,9 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const { formattedDate } = require("../utils/formattedDate");
+
 module.exports = {
   courseEnrollment: async (req, res, next) => {
-    //for free course
     try {
       const { courseId } = req.params;
 
@@ -36,7 +37,6 @@ module.exports = {
         },
       });
 
-      // check user alredy enrol course or not
       if (statusEnrollUser) {
         return res.status(400).json({
           status: false,
@@ -45,7 +45,6 @@ module.exports = {
         });
       }
 
-      // Check if the course is premium
       if (course.isPremium) {
         return res.status(400).json({
           status: false,
@@ -61,10 +60,57 @@ module.exports = {
         },
       });
 
+      const lessons = await prisma.lesson.findMany({
+        where: {
+          chapter: {
+            courseId: Number(courseId),
+          },
+        },
+      });
+
+      const trackingRecords = await Promise.all(
+        lessons.map(async (lesson) => {
+          return prisma.tracking.create({
+            data: {
+              userId: Number(req.user.id),
+              lessonId: lesson.id,
+              courseId: Number(courseId),
+              status: false,
+              createdAt: formattedDate(new Date()),
+              updatedAt: formattedDate(new Date()),
+            },
+            include: {
+              lesson: {
+                select: {
+                  lessonName: true,
+                },
+              },
+            },
+          });
+        })
+      );
+
+      setTimeout(async () => {
+        const allTracking = await prisma.tracking.findMany({
+          where: { userId: Number(req.user.id), status: true },
+        });
+
+        if (allTracking.length === 0 || !allTracking[0].status) {
+          await prisma.notification.create({
+            data: {
+              title: "Reminder",
+              message: "You have incomplete lessons. Please continue your learning.",
+              userId: Number(req.user.id),
+              createdAt: formattedDate(new Date()),
+            },
+          });
+        }
+      }, 24 * 60 * 60 * 1000);
+
       res.status(201).json({
         status: true,
         message: "Succes To Enroll Course",
-        data: { enrollCourse },
+        data: { enrollCourse, trackingRecords },
       });
     } catch (err) {
       next(err);
@@ -77,18 +123,38 @@ module.exports = {
         where: { userId: req.user.id },
         include: {
           course: {
-            include: {
-              category: true,
+            select: {
+              courseName: true,
+              level: true,
+              mentor: true,
+              duration: true,
+              courseImg: true,
+              createdAt: true,
+              categoryId: true,
+              category: {
+                select: {
+                  categoryName: true,
+                },
+              },
               chapter: {
-                include: {
-                  lesson: true,
+                select: {
+                  id: true,
+                  name: true,
+                  createdAt: true,
+                  duration: true,
+                  lesson: {
+                    select: {
+                      lessonName: true,
+                      videoURL: true,
+                      createdAt: true,
+                    },
+                  },
                 },
               },
             },
           },
         },
       });
-
       return res.status(200).json({
         status: true,
         message: "Get all enrollments successful",
@@ -115,11 +181,32 @@ module.exports = {
         where: { id: Number(enrollmentId) },
         include: {
           course: {
-            include: {
-              category: true,
+            select: {
+              courseName: true,
+              level: true,
+              mentor: true,
+              duration: true,
+              courseImg: true,
+              createdAt: true,
+              categoryId: true,
+              category: {
+                select: {
+                  categoryName: true,
+                },
+              },
               chapter: {
-                include: {
-                  lesson: true,
+                select: {
+                  id: true,
+                  name: true,
+                  createdAt: true,
+                  duration: true,
+                  lesson: {
+                    select: {
+                      lessonName: true,
+                      videoURL: true,
+                      createdAt: true,
+                    },
+                  },
                 },
               },
             },
@@ -139,69 +226,6 @@ module.exports = {
         status: true,
         message: "Get detail enrollment successful",
         data: { enrollment },
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  updateCourseEnrollment: async (req, res, next) => {
-    try {
-      const { courseId } = req.params;
-      const { userRating } = req.body;
-
-      if (isNaN(courseId)) {
-        return res.status(400).json({
-          status: false,
-          message: "Invalid courseId provided",
-          data: null,
-        });
-      }
-
-      if (userRating !== undefined && (isNaN(userRating) || userRating < 1 || userRating > 5)) {
-        return res.status(400).json({
-          status: false,
-          message: "Invalid userRating provided. It must be a number between 1 and 5.",
-          data: null,
-        });
-      }
-
-      let enrollment = await prisma.enrollment.findFirst({
-        where: { userId: Number(req.user.id), courseId: Number(courseId) },
-        include: { course: true },
-      });
-
-      if (!enrollment) {
-        return res.status(404).json({
-          status: false,
-          message: "Enrollment not found",
-          data: null,
-        });
-      }
-
-      let updatedEnrollment = await prisma.enrollment.update({
-        where: { id: enrollment.id },
-        data: { userRating },
-      });
-
-      const course = enrollment.course;
-
-      const enrollments = await prisma.enrollment.findMany({
-        where: { courseId: course.id, userRating: { not: null } },
-      });
-
-      const totalRatings = enrollments.reduce((total, enrollment) => total + (enrollment.userRating || 0), 0);
-      const averageRating = enrollments.length > 0 ? totalRatings / enrollments.length : 0;
-
-      let updatedCourse = await prisma.course.update({
-        where: { id: course.id },
-        data: { averageRating },
-      });
-
-      return res.status(200).json({
-        status: true,
-        message: "Enrollment updated successfully",
-        data: { updatedEnrollment, updatedCourse },
       });
     } catch (err) {
       next(err);

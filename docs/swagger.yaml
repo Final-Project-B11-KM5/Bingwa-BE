@@ -7,6 +7,7 @@ info:
 servers:
   - url: http://localhost:3000/api/v1
   - url: https://bingwa-b11.vercel.app/api/v1
+  - url: https://nodejsglove2040.stack-ap2.st4as.com/api/v1
 tags:
   - name: Users
     description: Operations about user
@@ -22,8 +23,18 @@ tags:
     description: Operations about Lesson
   - name: Enrollments
     description: Operations about Enrollment
+  - name: Reviews
+    description: Operations about Review
   - name: Promotions
     description: Operations about Promotion
+  - name: Notifications
+    description: Operations about Notification
+  - name: Trackings
+    description: Operations about Tracking
+  - name: Payments
+    description: Operations about Payment
+  - name: Admin
+    description: Operations about detail informaton class
 paths:
   /users/register:
     post:
@@ -132,6 +143,12 @@ paths:
                               role:
                                 type: string
                                 example: "user"
+                              resetPasswordToken:
+                                type: string
+                                example: null
+                              googleId:
+                                type: string
+                                example: null
                           token:
                             type: string
                             example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjk4Njk0MzI1fQ.mexfgD-aW24iYvoWYWQJWSv7AbJ5EqyIDrHS6iCk-d0"
@@ -207,6 +224,12 @@ paths:
                               role:
                                 type: string
                                 example: "user"
+                              resetPasswordToken:
+                                type: string
+                                example: null
+                              googleId:
+                                type: string
+                                example: null
         "401":
           description: Invalid OTP
           content:
@@ -279,8 +302,12 @@ paths:
                       data:
                         type: object
                         properties:
-                          user:
-                            $ref: "#/components/schemas/UserModel"
+                          email:
+                            type: string
+                            example: "budi@mail.com"
+                          token:
+                            type: string
+                            example: "$2b$10$wpqr1W8aUNCN7BZZ3o6sz.meX9rB/aItp5Mw/0q7GaRmJbsU2GGbK"
         "404":
           description: Email not found
           content:
@@ -438,6 +465,35 @@ paths:
                   message:
                     type: string
                     example: "Incorrect old password"
+  /users/google:
+    get:
+      tags:
+        - Users
+      operationId: get-login-user-with-google
+      summary: Initiate Google OAuth 2.0 Authentication
+      description: Redirects the user to Google for authentication.
+      security:
+        - google_oauth: []
+      responses:
+        "302":
+          description: Redirect to Google for authentication.
+  /users/google/callback:
+    get:
+      tags:
+        - Users
+      operationId: get-login-user-with-google-callback
+      summary: Google OAuth 2.0 Callback
+      description: Handles the callback after successful Google authentication.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Authorization code received from Google.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully authenticated with Google.
   /user-profiles/update-profile:
     put:
       tags:
@@ -591,6 +647,11 @@ paths:
       summary: Get all courses
       description: Get all courses
       parameters:
+        - name: search
+          in: query
+          description: search for get courses
+          schema:
+            type: string
         - name: filter
           in: query
           description: filter for get courses
@@ -604,6 +665,16 @@ paths:
         - name: level
           in: query
           description: level for get courses
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Used to specify a particular page when retrieving course data
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Determines the limit of the number of courses to be returned in a single request.
           schema:
             type: string
       responses:
@@ -624,7 +695,43 @@ paths:
                           courses:
                             type: array
                             items:
-                              $ref: "#/components/schemas/CourseModel"
+                              allOf:
+                                - $ref: "#/components/schemas/CourseModel"
+                                - type: object
+                                  properties:
+                                    category:
+                                      type: object
+                                      properties:
+                                        categoryName:
+                                          type: string
+                                          example: "UI/UX Design"
+                                        categoryImg:
+                                          type: string
+                                          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
+                                    enrollment:
+                                      type: array
+                                      items:
+                                        allOf:
+                                          - type: object
+                                            properties:
+                                              review:
+                                                type: object
+                                                properties:
+                                                  userRating:
+                                                    type: integer
+                                                    example: 5
+                                                  userComment:
+                                                    type: string
+                                                    example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
+                                                  createdAt:
+                                                    type: string
+                                                    example: "2023-11-24T01:11:59.133Z"
+                                    modul:
+                                      type: integer
+                                      example: 5
+                                    totalReviews:
+                                      type: integer
+                                      example: 10
     post:
       tags:
         - Courses
@@ -673,6 +780,133 @@ paths:
                   message:
                     type: string
                     example: "failed"
+  /courses/me:
+    get:
+      tags:
+        - Courses
+      operationId: get-all-courses-enroll
+      summary: Get all courses by user enroll
+      description: Get all courses by user enroll
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: search for get courses
+          schema:
+            type: string
+        - name: filter
+          in: query
+          description: filter for get courses
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: category for get courses
+          schema:
+            type: string
+        - name: level
+          in: query
+          description: level for get courses
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Used to specify a particular page when retrieving course data
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Determines the limit of the number of courses to be returned in a single request.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          Pagination:
+                            $ref: "#/components/schemas/Pagination"
+                          courseEnrol:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/CourseModelEnroll"
+                                - type: object
+                                  properties:
+                                    category:
+                                      allOf:
+                                        - $ref: "#/components/schemas/CategoryModel"
+  /courses/{courseId}/me:
+    get:
+      tags:
+        - Courses
+      operationId: get-courseEnrolUser-by-id
+      summary: get detail cpurse when user alredy enrol by id
+      description: get courseEnrolUser by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          course:
+                            allOf:
+                              - $ref: "#/components/schemas/DetailCourseModelEnroll"
+                              - type: object
+                                properties:
+                                  chapter:
+                                    type: array
+                                    items:
+                                      allOf:
+                                        - $ref: "#/components/schemas/ChapterModel"
+                                        - type: object
+                                          properties:
+                                            lesson:
+                                              type: array
+                                              items:
+                                                $ref: "#/components/schemas/LessonModel"
+                                  category:
+                                    allOf:
+                                      - $ref: "#/components/schemas/CategoryModel"
+
+        "400":
+          description: You Not Enroll this course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "You Not Enroll this course "
   /courses/{courseId}:
     get:
       tags:
@@ -680,8 +914,6 @@ paths:
       operationId: get-course-by-id
       summary: get course by id
       description: get course by id
-      security:
-        - bearerAuth: []
       parameters:
         - in: path
           name: courseId
@@ -718,7 +950,14 @@ paths:
                                               type: array
                                               items:
                                                 $ref: "#/components/schemas/LessonModel"
-
+                                  enrollment:
+                                    type: object
+                                    properties:
+                                      review:
+                                        type: array
+                                        items:
+                                          allOf:
+                                            - $ref: "#/components/schemas/ReviewModel"
         "400":
           description: Course Not Found
           content:
@@ -838,6 +1077,25 @@ paths:
                             items:
                               allOf:
                                 - $ref: "#/components/schemas/ChapterModel"
+                                - type: object
+                                  properties:
+                                    course:
+                                      type: object
+                                      properties:
+                                        courseName:
+                                          type: string
+                                          example: "The Purpose of Taking Design System Classes"
+                                        category:
+                                          type: object
+                                          properties:
+                                            categoryName:
+                                              type: string
+                                              example: "UI/UX Design"
+                                    lesson:
+                                      type: array
+                                      items:
+                                        allOf:
+                                          - $ref: "#/components/schemas/LessonModel"
     post:
       tags:
         - Chapters
@@ -891,7 +1149,15 @@ paths:
                         type: object
                         properties:
                           chapter:
-                            $ref: "#/components/schemas/ChapterModel"
+                            allOf:
+                              - $ref: "#/components/schemas/ChapterModel"
+                              - type: object
+                                properties:
+                                  lesson:
+                                    type: array
+                                    items:
+                                      allOf:
+                                        - $ref: "#/components/schemas/LessonModel"
         "404":
           description: Chapter Not Found
           content:
@@ -1000,6 +1266,12 @@ paths:
       operationId: get-all-lessons
       summary: Get all lessons
       description: Get all lessons
+      parameters:
+        - name: search
+          in: query
+          description: search for get chapters
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -1016,11 +1288,24 @@ paths:
                           lessons:
                             type: array
                             items:
-                              $ref: "#/components/schemas/LessonModel"
-                              type: object
-                              properties:
-                                chapter:
-                                  $ref: "#/components/schemas/ChapterModel"
+                              allOf:
+                                - $ref: "#/components/schemas/LessonModel"
+                                - type: object
+                                  properties:
+                                    chapter:
+                                      allOf:
+                                        - $ref: "#/components/schemas/ChapterModel"
+                                        - type: object
+                                          properties:
+                                            course:
+                                              allOf:
+                                                - $ref: "#/components/schemas/CourseModel"
+                                                - type: object
+                                                  properties:
+                                                    category:
+                                                      allOf:
+                                                        - $ref: "#/components/schemas/CategoryModel"
+
     post:
       tags:
         - Lessons
@@ -1046,7 +1331,7 @@ paths:
                         properties:
                           newLesson:
                             $ref: "#/components/schemas/LessonModel"
-  /lessons/search:
+  /lessons/filter:
     get:
       tags:
         - Lessons
@@ -1058,18 +1343,18 @@ paths:
       parameters:
         - name: chapter
           in: query
-          description: chapter for get lessons``
+          description: chapter for get lessons
           required: true
           schema:
             type: string
         - name: lesson
           in: query
-          description: lesson for get lessons``
+          description: lesson for get lessons
           schema:
             type: string
         - name: course
           in: query
-          description: course for get lessons``
+          description: course for get lessons
           schema:
             type: string
       responses:
@@ -1391,54 +1676,6 @@ paths:
                     type: string
                     example: "failed"
   /enrollments/{courseId}:
-    put:
-      tags:
-        - Enrollments
-      operationId: put-enrollment-by-courseId
-      summary: put enrollment by courseId
-      description: put enrollment by courseId
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: courseId
-          schema:
-            type: integer
-          required: true
-          description: The ID of the enrollment to retrieve.
-      requestBody:
-        $ref: "#/components/requestBodies/RatingEnrollment"
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BasicResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          updatedEnrollment:
-                            $ref: "#/components/schemas/EnrollmentModel"
-                          updatedCourse:
-                            $ref: "#/components/schemas/CourseModel"
-        "404":
-          description: Enrollment Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: "failed"
-  /enrollments/{courseId}/course:
     post:
       tags:
         - Enrollments
@@ -1465,8 +1702,24 @@ paths:
                   - type: object
                     properties:
                       data:
-                        allOf:
-                          - $ref: "#/components/schemas/EnrollmentModel"
+                        type: object
+                        properties:
+                          enrollCourse:
+                            allOf:
+                              - $ref: "#/components/schemas/EnrollmentModel"
+                          trackingRecords:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/TrackingModel"
+                                - type: object
+                                  properties:
+                                    lesson:
+                                      type: object
+                                      properties:
+                                        lessonName:
+                                          type: string
+                                          example: "The Purpose of Taking Design System Classes"
         "400":
           description: User Already Enroll
           content:
@@ -1480,6 +1733,54 @@ paths:
                   message:
                     type: string
                     example: "failed"
+        "404":
+          description: Enrollment Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /reviews/{courseId}:
+    post:
+      tags:
+        - Reviews
+      operationId: post-create-review
+      summary: post create review
+      description: post create review
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the enrollment to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateReview"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newReview:
+                            $ref: "#/components/schemas/EnrollmentModel"
+                          updatedCourse:
+                            $ref: "#/components/schemas/CourseModel"
         "404":
           description: Enrollment Not Found
           content:
@@ -1723,6 +2024,399 @@ paths:
                   message:
                     type: string
                     example: "failed"
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      operationId: get-all-notifications-by-authentication
+      summary: Get all notifications by authentication
+      description: Get all notifications by authentication
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          notifications:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/NotificationModel"
+    post:
+      tags:
+        - Notifications
+      operationId: post-create-notification-for-all-users
+      summary: Create notification for all users
+      description: Create notification with the provided information.
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: "#/components/requestBodies/CreateNotification"
+      responses:
+        "201":
+          description: Create notification was successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newNotification:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/PromotionModel"
+                                - type: object
+                                  properties:
+                                    user:
+                                      type: object
+                                      properties:
+                                        userProfile:
+                                          type: object
+                                          properties:
+                                            fullName:
+                                              type: string
+                                              example: "Budi Cahyono"
+  /notifications/markAsRead:
+    put:
+      tags:
+        - Notifications
+      operationId: put-notifications-by-authentication
+      summary: Put notifications by authentication
+      description: Put notifications by authentication
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          notifications:
+                            type: object
+                            properties:
+                              count:
+                                type: integer
+                                example: 10
+  /trackings/{lessonId}:
+    put:
+      tags:
+        - Trackings
+      operationId: put-tracking-by-lesson-id
+      summary: Put tracking by lesson id
+      description: Edit tracking by lesson id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: lessonId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the lesson to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          tracking:
+                            allOf:
+                              - $ref: "#/components/schemas/TrackingModel"
+  /payments: #update payment docs
+    get:
+      tags:
+        - Payments
+      operationId: get-all-payments
+      summary: get all payments
+      description: get all payments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: search for get payments
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          payments:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/PaymentHistoryModel"
+                                
+  /payments/history:
+    get:
+      tags:
+        - Payments
+      operationId: get-payments-by-authentication
+      summary: get payments by authentication
+      description: get payments by authentication
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          payments:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/PaymentHistoryModel"
+                               
+  /payments/{courseId}:
+    get:
+      tags:
+        - Payments
+      operationId: get-payment-by-course-id
+      summary: get payment by course id
+      description: get payment by course id
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the payment to retrieve.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          course:
+                            allOf:
+                              - $ref: "#/components/schemas/CourseModel"
+                              - type: object
+                                properties:
+                                  category:
+                                    type: object
+                                    properties:
+                                      categoryName:
+                                        type: string
+                                        example: "UI/UX Design"
+                          PPN:
+                            type: integer
+                            example: 27500
+                          amount:
+                            type: integer
+                            example: 277500
+        "404":
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+    post:
+      tags:
+        - Payments
+      operationId: post-create-payment
+      summary: post create payment
+      description: post create payment
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/CreatePayment"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newPayment:
+                            $ref: "#/components/schemas/PaymentModel"
+        "400":
+          description: Invalid Promotion ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+        "404":
+          description: Promotion Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /payments/midtrans/{courseId}:
+    post:
+      tags:
+        - Payments
+      operationId: post-create-payment-midtrans
+      summary: post create payment midtrans
+      description: post create payment midtrans
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: integer
+          required: true
+          description: The ID of the course to retrieve.
+      requestBody:
+        $ref: "#/components/requestBodies/CreatePaymentMidtrans"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          newPayment:
+                            $ref: "#/components/schemas/PaymentModel"
+        "400":
+          description: Invalid Promotion ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+        "404":
+          description: Promotion Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "failed"
+  /admin/all:
+    get:
+      tags:
+        - Admin
+      operationId: admin-detail-page
+      summary: admin detail page
+      description: detail page admin
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: User registration was successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          countUser:
+                            type: integer
+                            example: 2
+                          allCourse:
+                            type: integer
+                            example: 4
+                          coursePremium:
+                            type: integer
+                            example: 1
 components:
   schemas:
     BasicResponse:
@@ -1776,6 +2470,12 @@ components:
         role:
           type: string
           example: "user"
+        resetPasswordToken:
+          type: string
+          example: "$2b$10$wpqr1W8aUNCN7BZZ3o6sz.meX9rB/aItp5Mw/0q7GaRmJbsU2GGbK"
+        googleId:
+          type: string
+          example: null
     UserProfileModel:
       title: User Profile
       type: object
@@ -1833,6 +2533,9 @@ components:
         categoryName:
           type: string
           example: "UI/UX Design"
+        categoryImg:
+          type: string
+          example: "https://images.unsplash.com/photo-1600087626120-062700394a01?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     CourseModel:
       title: Course
       type: object
@@ -1847,7 +2550,8 @@ components:
           type: integer
           example: 250000
         averageRating:
-          type: integer
+          type: number
+          format: float
           example: 5
         level:
           type: string
@@ -1876,6 +2580,9 @@ components:
         duration:
           type: string
           example: "120 Minute"
+        courseImg:
+          type: string
+          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
         createdAt:
           type: string
           example: "2023-11-24T01:11:59.133Z"
@@ -1885,6 +2592,9 @@ components:
         promotionId:
           type: integer
           example: 1
+        modul:
+          type: integer
+          example: 2
     ChapterModel:
       title: Chapter
       type: object
@@ -1901,6 +2611,133 @@ components:
         courseId:
           type: integer
           example: 1
+    DetailCourseModelEnroll:
+      title: Course
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        courseName:
+          type: string
+          example: "Intro to Basic of User Interaction Design"
+        price:
+          type: integer
+          example: 250000
+        averageRating:
+          type: number
+          format: float
+          example: 5
+        level:
+          type: string
+          example: "Begginer Level"
+        aboutCourse:
+          type: string
+          example: "Design system adalah kumpulan komponen design, code, ataupun dokumentasi yang dapat digunakan sebagai panduan utama yang memunginkan designer serta developer memiliki lebih banyak kontrol atas berbagai platform."
+        targetAudience:
+          type: string
+          example: "Anda yang ingin memahami poin penting design system"
+        learningMaterial:
+          type: string
+          example: "Mempunyai akun Figma atau Install Adobe XD Menggunakan internet minimal kecepatan 2Mbps Belajar di tempat yang nyaman"
+        mentor:
+          type: string
+          example: "Simon Doe"
+        isPremium:
+          type: boolean
+          example: true
+        videoURL:
+          type: string
+          example: "https://youtu.be/ixOd42SEUF0"
+        forumURL:
+          type: string
+          example: "https://web.telegram.org"
+        duration:
+          type: string
+          example: "120 Minute"
+        courseImg:
+          type: string
+          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
+        createdAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        categoryId:
+          type: integer
+          example: 1
+        promotionId:
+          type: integer
+          example: 1
+        modul:
+          type: integer
+          example: 2
+        enrollment:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              progres:
+                type: string
+                example: "33.3"
+    CourseModelEnroll:
+      title: Course
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        courseName:
+          type: string
+          example: "Intro to Basic of User Interaction Design"
+        averageRating:
+          type: number
+          format: float
+          example: 5
+        level:
+          type: string
+        mentor:
+          type: string
+          example: "Simon Doe"
+        isPremium:
+          type: boolean
+          example: true
+        videoURL:
+          type: string
+          example: "https://youtu.be/ixOd42SEUF0"
+        forumURL:
+          type: string
+          example: "https://web.telegram.org"
+        duration:
+          type: string
+          example: "120 Minute"
+        courseImg:
+          type: string
+          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
+        category:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            categoryName:
+              type: string
+              example: "Web Development"
+        enrollment:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              progres:
+                type: string
+                example: "33.3"
+        modul:
+          type: integer
+          example: 2
     LessonModel:
       title: Lesson
       type: object
@@ -1923,6 +2760,34 @@ components:
         chapterId:
           type: integer
           example: 1
+    PaymentHistoryModel :
+      title: Payments
+      type: object
+      properties:
+        id:
+          type: integer
+          example : 1
+        status:
+          type: string
+          example: "paid"
+        createdAt:
+          type: string
+          example:  "16 Desember 2023"
+        methodPayment:
+          type: string
+          example: "Bank Transfer"
+        course:
+          type: object
+          properties:
+            courseName:
+              type: string
+              example: "Belajar Website Dengan Figma"
+            category:
+              type: object
+              properties:
+                categoryName :
+                  type: string
+                  example: "UI-UX Design"
     EnrollmentModel:
       title: Enrollment
       type: object
@@ -1930,9 +2795,9 @@ components:
         id:
           type: integer
           example: 1
-        isPaid:
-          type: boolean
-          example: false
+        userRating:
+          type: integer
+          example: 5
         createdAt:
           type: string
           example: "2023-11-24T01:11:59.133Z"
@@ -1959,6 +2824,66 @@ components:
         endDate:
           type: string
           example: "2023-11-24T01:11:59.133Z"
+    TrackingModel:
+      title: Tracking
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          example: false
+        userId:
+          type: integer
+          example: 1
+        lessonId:
+          type: integer
+          example: 1
+    PaymentModel:
+      title: Payment
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        amount:
+          type: integer
+          example: 100000
+        status:
+          type: string
+          example: "Unpaid"
+        methodPayment:
+          type: string
+          example: "Credit Card"
+        createdAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        updatedAt:
+          type: string
+          example: "2023-11-24T01:11:59.133Z"
+        userId:
+          type: integer
+          example: 1
+        courseId:
+          type: integer
+          example: 1
+    ReviewModel:
+      title: Review
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userRating:
+          type: integer
+          example: 5
+        userComment:
+          type: string
+          example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
+        enrollmentId:
+          type: integer
+          example: 1
   requestBodies:
     Register:
       content:
@@ -2077,6 +3002,9 @@ components:
               categoryName:
                 type: string
                 example: "UI/UX Design"
+              categoryImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
     EditCategory:
       content:
         application/json:
@@ -2086,6 +3014,9 @@ components:
               categoryName:
                 type: string
                 example: "UI/UX Design"
+              categoryImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
     CreateCourse:
       content:
         application/json:
@@ -2113,9 +3044,6 @@ components:
               mentor:
                 type: string
                 example: "Simon Doe"
-              isPremium:
-                type: boolean
-                example: true
               videoURL:
                 type: string
                 example: "https://youtu.be/ixOd42SEUF0"
@@ -2125,6 +3053,9 @@ components:
               duration:
                 type: string
                 example: "120 Minute"
+              courseImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
               categoryId:
                 type: integer
                 example: 1
@@ -2158,9 +3089,6 @@ components:
               mentor:
                 type: string
                 example: "Simon Doe"
-              isPremium:
-                type: boolean
-                example: true
               videoURL:
                 type: string
                 example: "https://youtu.be/ixOd42SEUF0"
@@ -2170,6 +3098,9 @@ components:
               duration:
                 type: string
                 example: "120 Minute"
+              courseImg:
+                type: string
+                example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
               categoryId:
                 type: integer
                 example: 1
@@ -2188,6 +3119,9 @@ components:
               courseId:
                 type: integer
                 example: 1
+              duration :
+                type: string
+                example : "90 menit"
     EditChapter:
       content:
         application/json:
@@ -2230,7 +3164,7 @@ components:
               chapterId:
                 type: integer
                 example: 1
-    RatingEnrollment:
+    CreateReview:
       content:
         application/json:
           schema:
@@ -2239,6 +3173,9 @@ components:
               userRating:
                 type: integer
                 example: 5
+              userComment:
+                type: string
+                example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
     CreatePromotion:
       content:
         application/json:
@@ -2271,8 +3208,57 @@ components:
               endDate:
                 type: string
                 example: "2023-11-30"
+    CreateNotification:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                example: "Notification"
+              message:
+                type: string
+                example: "Password successfully updated!"
+    CreatePayment:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              methodPayment:
+                type: string
+                example: "Credit Card"
+    CreatePaymentMidtrans:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              methodPayment:
+                type: string
+                example: "Credit Card"
+              cardNumber:
+                type: string
+                example: "4811111111111114"
+              cvv:
+                type: string
+                example: "123"
+              expiryDate:
+                type: string
+                example: "02/25"
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    google_oauth:
+      type: oauth2
+      description: Google OAuth
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.google.com/o/oauth2/v2/auth
+          tokenUrl: https://www.googleapis.com/oauth2/v4/token
+          scopes:
+            profile: View your basic profile info
+            email: View your email address
