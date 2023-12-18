@@ -117,14 +117,14 @@ model Notification {
 }
 
 model Enrollment {
-  id       Int     @id @default(autoincrement())
-  createAt String
-  userId   Int?
-  user     User?   @relation(fields: [userId], references: [id])
-  courseId Int?
-  course   Course? @relation(fields: [courseId], references: [id])
-  progres  Decimal @default(0)
-  review   Review?
+  id        Int     @id @default(autoincrement())
+  createdAt String
+  userId    Int?
+  user      User?   @relation(fields: [userId], references: [id])
+  courseId  Int?
+  course    Course? @relation(fields: [courseId], references: [id])
+  progres   Decimal @default(0)
+  review    Review?
 }
 
 model Payment {
@@ -132,7 +132,7 @@ model Payment {
   amount        Int
   status        String @default("Unpaid")
   methodPayment String
-  createAt      String
+  createdAt     String
   updatedAt     String
   userId        Int
   user          User   @relation(fields: [userId], references: [id])
