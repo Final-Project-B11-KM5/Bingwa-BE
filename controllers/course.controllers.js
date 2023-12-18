@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const getPagination = require("../utils/getPaggination");
+const { getPagination } = require("../utils/getPaggination");
 const { formattedDate } = require("../utils/formattedDate");
 
 module.exports = {
@@ -562,13 +562,10 @@ module.exports = {
         },
       });
 
-      const totalCourses = await prisma.course.count();
-      const pagination = getPagination(
-        req,
-        totalCourses,
-        Number(page),
-        Number(limit)
-      );
+      const totalCourses = await prisma.course.count({
+        where: coursesQuery.where,
+      });
+      const pagination = getPagination(req, totalCourses, Number(page), Number(limit));
 
       courses = courses.map((val) => {
         val["modul"] = val._count.chapter;
