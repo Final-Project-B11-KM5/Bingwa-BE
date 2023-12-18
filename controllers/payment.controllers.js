@@ -142,6 +142,7 @@ module.exports = {
           data: { newPayment },
         });
       } catch (err) {
+        console.log(err);
         res.status(400).json({
           status: false,
           message: "Error When Create Payment,make sure request is valid type",
@@ -243,13 +244,13 @@ module.exports = {
           },
         },
       });
-      payments = payments.map((val) => {
-        let localDate = new Date(val.createdAt);
-        let timeString = localDate.toLocaleTimeString();
-        let dateString = localDate.toDateString();
-        val.createdAt = `${dateString},${timeString}`;
-        return val;
-      });
+      // payments = payments.map((val) => {
+      //   let localDate = new Date(val.createdAt);
+      //   let timeString = localDate.toLocaleTimeString();
+      //   let dateString = localDate.toDateString();
+      //   val.createdAt = `${dateString},${timeString}`;
+      //   return val;
+      // });
 
       res.status(200).json({
         status: true,
