@@ -122,6 +122,7 @@ CREATE TABLE "Payment" (
     "amount" INTEGER NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'Unpaid',
     "methodPayment" TEXT NOT NULL,
+    "paymentCode" TEXT NOT NULL,
     "createdAt" TEXT NOT NULL,
     "updatedAt" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,

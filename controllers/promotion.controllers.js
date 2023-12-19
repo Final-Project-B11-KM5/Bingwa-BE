@@ -50,7 +50,7 @@ createPromotion = async (req, res, next) => {
     res.status(201).json({
       status: true,
       message: "Promotion created successfully",
-      data: { newPromotion, newNotification },
+      data: { newPromotion },
     });
   } catch (err) {
     next(err);

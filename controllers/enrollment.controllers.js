@@ -57,6 +57,7 @@ module.exports = {
         data: {
           userId: Number(req.user.id),
           courseId: Number(courseId),
+          createdAt: formattedDate(new Date()),
         },
       });
 
@@ -110,7 +111,7 @@ module.exports = {
       res.status(201).json({
         status: true,
         message: "Succes To Enroll Course",
-        data: { enrollCourse, trackingRecords },
+        data: { enrollCourse },
       });
     } catch (err) {
       next(err);
