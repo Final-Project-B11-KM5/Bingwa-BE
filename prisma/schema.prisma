@@ -9,7 +9,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -132,6 +132,7 @@ model Payment {
   amount        Int
   status        String @default("Unpaid")
   methodPayment String
+  paymentCode   String
   createdAt     String
   updatedAt     String
   userId        Int

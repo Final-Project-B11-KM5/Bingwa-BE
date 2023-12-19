@@ -493,7 +493,54 @@ paths:
             type: string
       responses:
         "200":
-          description: Successfully authenticated with Google.
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BasicResponse"
+                  - type: object
+                    properties:
+                      err:
+                        type: string
+                        example: null
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            allOf:
+                              - type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                    example: 1
+                                  email:
+                                    type: string
+                                    example: "budi@gmail.com"
+                                  password:
+                                    type: string
+                                    example: null
+                                  otp:
+                                    type: string
+                                    example: null
+                                  otpCreatedAt:
+                                    type: string
+                                    example: null
+                                  isVerified:
+                                    type: boolean
+                                    example: true
+                                  role:
+                                    type: string
+                                    example: "user"
+                                  resetPasswordToken:
+                                    type: string
+                                    example: null
+                                  googleId:
+                                    type: string
+                                    example: "0123456789"
+                          token:
+                            type: string
+                            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjk4Njk0MzI1fQ.mexfgD-aW24iYvoWYWQJWSv7AbJ5EqyIDrHS6iCk-d0"
   /user-profiles/update-profile:
     put:
       tags:
@@ -705,9 +752,6 @@ paths:
                                         categoryName:
                                           type: string
                                           example: "UI/UX Design"
-                                        categoryImg:
-                                          type: string
-                                          example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
                                     enrollment:
                                       type: array
                                       items:
@@ -717,6 +761,9 @@ paths:
                                               review:
                                                 type: object
                                                 properties:
+                                                  id:
+                                                    type: integer
+                                                    example: 1
                                                   userRating:
                                                     type: integer
                                                     example: 5
@@ -725,7 +772,7 @@ paths:
                                                     example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
                                                   createdAt:
                                                     type: string
-                                                    example: "2023-11-24T01:11:59.133Z"
+                                                    example: "19 Desember 2023"
                                     modul:
                                       type: integer
                                       example: 5
@@ -939,17 +986,45 @@ paths:
                               - $ref: "#/components/schemas/CourseModel"
                               - type: object
                                 properties:
+                                  category:
+                                    type: object
+                                    properties:
+                                      categoryName:
+                                        type: string
+                                        example: "UI/UX Design"
                                   chapter:
                                     type: array
                                     items:
                                       allOf:
-                                        - $ref: "#/components/schemas/ChapterModel"
                                         - type: object
                                           properties:
+                                            id:
+                                              type: integer
+                                              example: 1
+                                            name:
+                                              type: string
+                                              example: "Chapter 1 - Pendahuluan"
+                                            duration:
+                                              type: string
+                                              example: "90 Menit"
                                             lesson:
                                               type: array
                                               items:
-                                                $ref: "#/components/schemas/LessonModel"
+                                                allOf:
+                                                  - type: object
+                                                    properties:
+                                                      id:
+                                                        type: integer
+                                                        example: 1
+                                                      lessonName:
+                                                        type: string
+                                                        example: "The Purpose of Taking Design System Classes 1"
+                                                      videoURL:
+                                                        type: string
+                                                        example: "https://youtu.be/ixOd42SEUF0"
+                                                      createdAt:
+                                                        type: string
+                                                        example: "19 Desember 2023"
                                   enrollment:
                                     type: object
                                     properties:
@@ -958,6 +1033,9 @@ paths:
                                         items:
                                           allOf:
                                             - $ref: "#/components/schemas/ReviewModel"
+                                  modul:
+                                    type: integer
+                                    example: 10
         "400":
           description: Course Not Found
           content:
@@ -1095,7 +1173,17 @@ paths:
                                       type: array
                                       items:
                                         allOf:
-                                          - $ref: "#/components/schemas/LessonModel"
+                                          - type: object
+                                            properties:
+                                              lessonName:
+                                                type: string
+                                                example: "The Purpose of Taking Design System Classes"
+                                              videoURL:
+                                                type: string
+                                                example: "https://youtu.be/ixOd42SEUF0"
+                                              createdAt:
+                                                type: string
+                                                example: "19 Desember 2023"
     post:
       tags:
         - Chapters
@@ -1157,7 +1245,17 @@ paths:
                                     type: array
                                     items:
                                       allOf:
-                                        - $ref: "#/components/schemas/LessonModel"
+                                        - type: object
+                                          properties:
+                                            lessonName:
+                                              type: string
+                                              example: "The Purpose of Taking Design System Classes"
+                                            videoURL:
+                                              type: string
+                                              example: "https://youtu.be/ixOd42SEUF0"
+                                            createdAt:
+                                              type: string
+                                              example: "19 Desember 2023"
         "404":
           description: Chapter Not Found
           content:
@@ -1294,17 +1392,25 @@ paths:
                                   properties:
                                     chapter:
                                       allOf:
-                                        - $ref: "#/components/schemas/ChapterModel"
                                         - type: object
                                           properties:
+                                            name:
+                                              type: string
+                                              example: "Chapter 1 - Pendahuluan"
                                             course:
                                               allOf:
-                                                - $ref: "#/components/schemas/CourseModel"
                                                 - type: object
                                                   properties:
+                                                    courseName:
+                                                      type: string
+                                                      example: "Intro to Basic of User Interaction Design"
                                                     category:
                                                       allOf:
-                                                        - $ref: "#/components/schemas/CategoryModel"
+                                                        - type: object
+                                                          properties:
+                                                            categoryName:
+                                                              type: string
+                                                              example: "UI/UX Design"
 
     post:
       tags:
@@ -1408,11 +1514,17 @@ paths:
                         type: object
                         properties:
                           lesson:
-                            $ref: "#/components/schemas/LessonModel"
-                            type: object
-                            properties:
-                              chapter:
-                                $ref: "#/components/schemas/ChapterModel"
+                            allOf:
+                              - $ref: "#/components/schemas/LessonModel"
+                              - type: object
+                                properties:
+                                  chapter:
+                                    allOf:
+                                      - type: object
+                                        properties:
+                                          name:
+                                            type: string
+                                            example: "Chapter 1 - Pendahuluan"
         "404":
           description: Lesson Not Found
           content:
@@ -1707,19 +1819,6 @@ paths:
                           enrollCourse:
                             allOf:
                               - $ref: "#/components/schemas/EnrollmentModel"
-                          trackingRecords:
-                            type: array
-                            items:
-                              allOf:
-                                - $ref: "#/components/schemas/TrackingModel"
-                                - type: object
-                                  properties:
-                                    lesson:
-                                      type: object
-                                      properties:
-                                        lessonName:
-                                          type: string
-                                          example: "The Purpose of Taking Design System Classes"
         "400":
           description: User Already Enroll
           content:
@@ -1778,9 +1877,14 @@ paths:
                         type: object
                         properties:
                           newReview:
-                            $ref: "#/components/schemas/EnrollmentModel"
+                            $ref: "#/components/schemas/ReviewModel"
                           updatedCourse:
-                            $ref: "#/components/schemas/CourseModel"
+                            type: object
+                            properties:
+                              averageRating:
+                                type: number
+                                format: float
+                                example: 4.7
         "404":
           description: Enrollment Not Found
           content:
@@ -2150,7 +2254,7 @@ paths:
                           tracking:
                             allOf:
                               - $ref: "#/components/schemas/TrackingModel"
-  /payments: #update payment docs
+  /payments:
     get:
       tags:
         - Payments
@@ -2182,8 +2286,32 @@ paths:
                             type: array
                             items:
                               allOf:
-                                - $ref: "#/components/schemas/PaymentHistoryModel"
-                                
+                                - type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                      example: 1
+                                    status:
+                                      type: string
+                                      example: "paid"
+                                    createdAt:
+                                      type: string
+                                      example: "19 Desember 2023"
+                                    methodPayment:
+                                      type: string
+                                      example: "Credit Card"
+                                    course:
+                                      type: object
+                                      properties:
+                                        courseName:
+                                          type: string
+                                          example: "Intro to Basic of User Interaction Design"
+                                        category:
+                                          type: object
+                                          properties:
+                                            categoryName:
+                                              type: string
+                                              example: "UI/UX Design"
   /payments/history:
     get:
       tags:
@@ -2210,8 +2338,23 @@ paths:
                             type: array
                             items:
                               allOf:
-                                - $ref: "#/components/schemas/PaymentHistoryModel"
-                               
+                                - $ref: "#/components/schemas/PaymentModel"
+                                - type: object
+                                  properties:
+                                    course:
+                                      allOf:
+                                        - $ref: "#/components/schemas/PaymentModel"
+                                        - type: object
+                                          properties:
+                                            category:
+                                              type: object
+                                              properties:
+                                                categoryName:
+                                                  type: string
+                                                  example: "UI/UX Design"
+                                            modul:
+                                              type: integer
+                                              example: 10
   /payments/{courseId}:
     get:
       tags:
@@ -2360,8 +2503,68 @@ paths:
                         properties:
                           newPayment:
                             $ref: "#/components/schemas/PaymentModel"
+                          transaction:
+                            type: object
+                            properties:
+                              status_code:
+                                type: string
+                                example: "201"
+                              status_message:
+                                type: string
+                                example: "Success, Credit Card transaction is successful"
+                              transaction_id:
+                                type: string
+                                example: "23c5a0ba-40aa-4501-a2cc-06120ad49eb0"
+                              order_id:
+                                type: string
+                                example: "UI/UX-Design-HPHL3Eis4y"
+                              merchant_id:
+                                type: string
+                                example: "G212325672"
+                              gross_amount:
+                                type: string
+                                example: "277501.00"
+                              currency:
+                                type: string
+                                example: "IDR"
+                              payment_type:
+                                type: string
+                                example: "credit_card"
+                              transaction_time:
+                                type: string
+                                example: "2023-12-19 18:38:02"
+                              transaction_status:
+                                type: string
+                                example: "pending"
+                              fraud_status:
+                                type: string
+                                example: "accept"
+                              expiry_time:
+                                type: string
+                                example: "2023-12-27 18:38:02"
+                              bank:
+                                type: string
+                                example: "cimb"
+                              redirect_url:
+                                type: string
+                                example: "https://api.sandbox.midtrans.com/v2/3ds/redirect/23c5a0ba-40aa-4501-a2cc-06120ad49eb0"
+                              masked_card:
+                                type: string
+                                example: "48111111-1114"
+                              card_type:
+                                type: string
+                                example: "credit"
+                              channel:
+                                type: string
+                                example: "dragon"
+                              three_ds_version:
+                                type: string
+                                example: "2"
+                              on_us:
+                                type: boolean
+                                example: false
         "400":
-          description: Invalid Promotion ID
+          description: Course Free Not Able to Buy
           content:
             application/json:
               schema:
@@ -2374,7 +2577,7 @@ paths:
                     type: string
                     example: "failed"
         "404":
-          description: Promotion Not Found
+          description: Course Not Found
           content:
             application/json:
               schema:
@@ -2519,7 +2722,7 @@ components:
           example: false
         createdAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         userId:
           type: integer
           example: 1
@@ -2585,16 +2788,13 @@ components:
           example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
         createdAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         categoryId:
           type: integer
           example: 1
         promotionId:
           type: integer
           example: 1
-        modul:
-          type: integer
-          example: 2
     ChapterModel:
       title: Chapter
       type: object
@@ -2607,7 +2807,13 @@ components:
           example: "Intro to Basic of User Interaction Design"
         createdAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
+        updatedAt:
+          type: string
+          example: "19 Desember 2023"
+        duration:
+          type: string
+          example: "0"
         courseId:
           type: integer
           example: 1
@@ -2660,7 +2866,7 @@ components:
           example: "https://ik.imagekit.io/budi123/1628693262177_a8Y3AhxNv.png"
         createdAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         categoryId:
           type: integer
           example: 1
@@ -2753,41 +2959,13 @@ components:
           example: "https://youtu.be/ixOd42SEUF0"
         createdAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         updatedAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         chapterId:
           type: integer
           example: 1
-    PaymentHistoryModel :
-      title: Payments
-      type: object
-      properties:
-        id:
-          type: integer
-          example : 1
-        status:
-          type: string
-          example: "paid"
-        createdAt:
-          type: string
-          example:  "16 Desember 2023"
-        methodPayment:
-          type: string
-          example: "Bank Transfer"
-        course:
-          type: object
-          properties:
-            courseName:
-              type: string
-              example: "Belajar Website Dengan Figma"
-            category:
-              type: object
-              properties:
-                categoryName :
-                  type: string
-                  example: "UI-UX Design"
     EnrollmentModel:
       title: Enrollment
       type: object
@@ -2795,18 +2973,19 @@ components:
         id:
           type: integer
           example: 1
-        userRating:
-          type: integer
-          example: 5
         createdAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         userId:
           type: integer
           example: 1
         courseId:
           type: integer
           example: 1
+        progres:
+          type: number
+          format: float
+          example: 0
     PromotionModel:
       title: Promotion
       type: object
@@ -2820,10 +2999,10 @@ components:
           example: 0.1
         startDate:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "01 Desember 2023"
         endDate:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "31 Desember 2023"
     TrackingModel:
       title: Tracking
       type: object
@@ -2834,10 +3013,19 @@ components:
         status:
           type: string
           example: false
+        createdAt:
+          type: string
+          example: "19 Desember 2023"
+        updatedAt:
+          type: string
+          example: "19 Desember 2023"
         userId:
           type: integer
           example: 1
         lessonId:
+          type: integer
+          example: 1
+        courseId:
           type: integer
           example: 1
     PaymentModel:
@@ -2856,12 +3044,15 @@ components:
         methodPayment:
           type: string
           example: "Credit Card"
+        paymentCode:
+          type: string
+          example: "UI/UX-Design-HPHL3Eis4y"
         createdAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         updatedAt:
           type: string
-          example: "2023-11-24T01:11:59.133Z"
+          example: "19 Desember 2023"
         userId:
           type: integer
           example: 1
@@ -2881,6 +3072,9 @@ components:
         userComment:
           type: string
           example: "This course provides a comprehensive understanding. The instructor is clear and profound, and the combination of theory and practical case studies makes it highly applicable. Highly recommended"
+        createdAt:
+          type: string
+          example: "19 Desember 2023"
         enrollmentId:
           type: integer
           example: 1
@@ -3119,9 +3313,9 @@ components:
               courseId:
                 type: integer
                 example: 1
-              duration :
+              duration:
                 type: string
-                example : "90 menit"
+                example: "90 Menit"
     EditChapter:
       content:
         application/json:
@@ -3134,6 +3328,9 @@ components:
               courseId:
                 type: integer
                 example: 1
+              duration:
+                type: string
+                example: "90 Menit"
     CreateLesson:
       content:
         application/json:
@@ -3191,7 +3388,7 @@ components:
                 example: "2023-12-01"
               endDate:
                 type: string
-                example: "2023-11-30"
+                example: "2023-12-31"
     EditPromotion:
       content:
         application/json:
@@ -3207,7 +3404,7 @@ components:
                 example: "2023-12-01"
               endDate:
                 type: string
-                example: "2023-11-30"
+                example: "2023-12-31"
     CreateNotification:
       content:
         application/json:

@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 const nodemailer = require("../utils/nodemailer");
 const { formattedDate } = require("../utils/formattedDate");
+const { generatedPaymentCode } = require("../utils/codeGenerator");
 
 const { PAYMENT_DEV_CLIENT_KEY, PAYMENT_DEV_SERVER_KEY, PAYMENT_PROD_CLIENT_KEY, PAYMENT_PROD_SERVER_KEY } = process.env;
 
@@ -36,6 +37,13 @@ module.exports = {
       let course = await prisma.course.findFirst({
         where: {
           id: Number(idCourse),
+        },
+        include: {
+          category: {
+            select: {
+              categoryName: true,
+            },
+          },
         },
       });
       if (!course) {
@@ -72,6 +80,7 @@ module.exports = {
       // end check user alredy enroll course or not
 
       // create payment
+      const modifiedName = course.category.categoryName.replace(/\s+/g, "-");
       amount = course.price * PPN + course.price;
 
       if (!methodPayment || typeof methodPayment != "string") {
@@ -84,11 +93,12 @@ module.exports = {
       try {
         let newPayment = await prisma.payment.create({
           data: {
-            amount,
+            amount: parseInt(amount),
             courseId: Number(idCourse),
             userId: Number(req.user.id),
             status: "paid",
             methodPayment,
+            paymentCode: `${modifiedName}-${generatedPaymentCode()}`,
             createdAt: formattedDate(new Date()),
             updatedAt: formattedDate(new Date()),
           },
@@ -268,9 +278,7 @@ module.exports = {
         where: {
           userId: Number(req.user.id),
         },
-        select: {
-          id: true,
-          status: true,
+        include: {
           course: {
             select: {
               id: true,
@@ -342,6 +350,13 @@ module.exports = {
 
       const course = await prisma.course.findUnique({
         where: { id: Number(courseId) },
+        include: {
+          category: {
+            select: {
+              categoryName: true,
+            },
+          },
+        },
       });
 
       if (!course) {
@@ -352,7 +367,7 @@ module.exports = {
         });
       }
 
-      if (!course.isPremium) {
+      if (course.isPremium === false) {
         return res.status(400).json({
           status: false,
           message: `Course Free Not Able to Buy`,
@@ -375,12 +390,14 @@ module.exports = {
         });
       }
 
-      const totalPrice = (course.price * 0, 11) + course.price;
+      const modifiedName = course.category.categoryName.replace(/\s+/g, "-");
+      const totalPrice = course.price * 0.11 + course.price;
 
       let newPayment = await prisma.payment.create({
         data: {
-          amount: totalPrice,
+          amount: parseInt(totalPrice),
           methodPayment,
+          paymentCode: `${modifiedName}-${generatedPaymentCode()}`,
           courseId: Number(courseId),
           userId: Number(req.user.id),
           createdAt: formattedDate(new Date()),
@@ -390,8 +407,8 @@ module.exports = {
 
       let parameter = {
         transaction_details: {
-          order_id: newPayment.id,
-          gross_amount: totalPrice,
+          order_id: `${modifiedName}-${generatedPaymentCode()}`,
+          gross_amount: parseInt(totalPrice),
         },
         customer_details: {
           first_name: user.userProfile.fullName,
@@ -464,6 +481,7 @@ module.exports = {
             data: {
               userId: Number(req.user.id),
               lessonId: lesson.id,
+              courseId: Number(courseId),
               status: false,
               createdAt: formattedDate(new Date()),
               updatedAt: formattedDate(new Date()),
@@ -511,7 +529,7 @@ module.exports = {
       let data = await core.transaction.notification(notification);
 
       const updatedPayment = await prisma.payment.update({
-        where: { id: data.order_id },
+        where: { paymentCode: data.order_id },
         data: {
           status: "Paid",
           methodPayment: data.payment_type,
