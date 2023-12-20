@@ -95,7 +95,7 @@ const createLesson = async (req, res, next) => {
     res.status(201).json({
       status: true,
       message: "Lesson created successfully",
-      data: { newLesson, trackingRecords },
+      data: { newLesson },
     });
   } catch (err) {
     next(err);

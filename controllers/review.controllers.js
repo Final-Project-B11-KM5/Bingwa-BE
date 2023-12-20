@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const { formattedDate } = require("../utils/formattedDate");
 module.exports = {
   createReview: async (req, res, next) => {
     try {
@@ -49,7 +50,7 @@ module.exports = {
       }
 
       let newReview = await prisma.review.create({
-        data: { userRating, userComment, enrollmentId: enrollment.id },
+        data: { userRating, userComment, enrollmentId: enrollment.id, createdAt: formattedDate(new Date()) },
       });
 
       const existingReviews = await prisma.review.findMany({
@@ -67,7 +68,7 @@ module.exports = {
       return res.status(200).json({
         status: true,
         message: "Create Review User successfully",
-        data: { newReview, updatedCourse },
+        data: { newReview, updatedCourse: { averageRating: updatedCourse.averageRating } },
       });
     } catch (err) {
       next(err);

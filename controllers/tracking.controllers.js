@@ -55,7 +55,7 @@ module.exports = {
         },
         data: {
           status: true,
-          updatedAt: new Date(),
+          updatedAt: formattedDate(new Date()),
         },
       });
 
@@ -95,7 +95,6 @@ module.exports = {
         },
         data: {
           progres: newProgres.toFixed(1),
-          updatedAt: formattedDate(new Date()),
         },
       });
       // end update progres
