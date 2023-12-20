@@ -352,8 +352,6 @@ paths:
                         properties:
                           updatedUser:
                             $ref: "#/components/schemas/UserModel"
-                          newNotification:
-                            $ref: "#/components/schemas/NotificationModel"
         "400":
           description: The password and password confirmation fields must match
           content:
@@ -437,8 +435,6 @@ paths:
                         properties:
                           updatedUser:
                             $ref: "#/components/schemas/UserProfileModel"
-                          newNotification:
-                            $ref: "#/components/schemas/NotificationModel"
         "400":
           description: The password and password confirmation fields must match
           content:

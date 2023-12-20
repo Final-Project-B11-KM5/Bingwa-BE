@@ -322,7 +322,7 @@ module.exports = {
   createPaymentMidtrans: async (req, res, next) => {
     try {
       const courseId = req.params.courseId;
-      const { methodPayment, cardNumber, cvv, expiryDate, bankName, createdAt, updatedAt } = req.body;
+      const { methodPayment, cardNumber, cvv, expiryDate, bankName, store, message, createdAt, updatedAt } = req.body;
 
       if (createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
@@ -440,8 +440,8 @@ module.exports = {
         };
       }
 
-      if (methodPayment === "Permata") {
-        parameter.payment_type = "permata";
+      if (methodPayment === "Permata" || methodPayment === "Cardless Credit") {
+        parameter.payment_type = methodPayment;
       }
 
       if (methodPayment === "Gopay") {
@@ -450,6 +450,26 @@ module.exports = {
           enable_callback: true,
           callback_url: "localhost:3000/payment-success",
         };
+      }
+
+      if (methodPayment === "Counter") {
+        parameter.payment_type = "cstore";
+        if (store === "alfamart") {
+          parameter.cstore = {
+            store: "alfamart",
+            message,
+            alfamart_free_text_1: "1st row of receipt,",
+            alfamart_free_text_2: "This is the 2nd row,",
+            alfamart_free_text_3: "3rd row. The end.",
+          };
+        }
+
+        if (store === "indomaret") {
+          parameter.cstore = {
+            store: "indomaret",
+            message,
+          };
+        }
       }
 
       let transaction = await core.charge(parameter);
