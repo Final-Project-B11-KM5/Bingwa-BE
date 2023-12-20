@@ -334,7 +334,7 @@ module.exports = {
         res.status(200).json({
           status: true,
           message: "Your password has been updated successfully!",
-          data: { updateUser, newNotification },
+          data: { updateUser },
         });
       });
     } catch (err) {
@@ -428,7 +428,7 @@ module.exports = {
       res.status(200).json({
         status: true,
         message: "Your password has been successfully changed",
-        data: { updateUser, newNotification },
+        data: { updateUser },
       });
     } catch (err) {
       next(err);
