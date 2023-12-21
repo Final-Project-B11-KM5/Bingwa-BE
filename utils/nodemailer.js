@@ -1,32 +1,55 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
-const { google } = require("googleapis");
+// const { google } = require("googleapis");
 const ejs = require("ejs");
-const { GOOGLE_REFRESH_TOKEN, GOOGLE_SENDER_EMAIL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
+// const { GOOGLE_REFRESH_TOKEN, GOOGLE_SENDER_EMAIL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
+const { SMTP_USER, SMTP_PASS } = process.env;
+// const oauth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 
-const oauth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
-
-oauth2Client.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
+// oauth2Client.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
 
 module.exports = {
   sendEmail: async (to, subject, html) => {
-    const accesToken = await oauth2Client.getAccessToken();
+    try {
+      const transport = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        secure: true,
+        auth: {
+          user: SMTP_USER,
+          pass: SMTP_PASS,
+        },
+      });
 
-    const transport = nodemailer.createTransport({
-      service: "gmail",
-      port: 465,
-      auth: {
-        type: "OAuth2",
-        user: GOOGLE_SENDER_EMAIL,
-        clientId: GOOGLE_CLIENT_ID,
-        clientSecret: GOOGLE_CLIENT_SECRET,
-        refreshToken: GOOGLE_REFRESH_TOKEN,
-        accessToken: accesToken,
-      },
-    });
+      const mailOptions = {
+        from: SMTP_USER,
+        to,
+        subject,
+        html,
+      };
 
-    await transport.sendMail({ to, subject, html });
+      transport.sendMail(mailOptions);
+    } catch (error) {
+      console.log(error);
+    }
   },
+  // sendEmail: async (to, subject, html) => {
+  //   const accesToken = await oauth2Client.getAccessToken();
+
+  //   const transport = nodemailer.createTransport({
+  //     service: "gmail",
+  //     port: 465,
+  //     auth: {
+  //       type: "OAuth2",
+  //       user: GOOGLE_SENDER_EMAIL,
+  //       clientId: GOOGLE_CLIENT_ID,
+  //       clientSecret: GOOGLE_CLIENT_SECRET,
+  //       refreshToken: GOOGLE_REFRESH_TOKEN,
+  //       accessToken: accesToken,
+  //     },
+  //   });
+
+  //   transport.sendMail({ to, subject, html });
+  // },
 
   getHtml: (fileName, data) => {
     return new Promise((resolve, reject) => {
