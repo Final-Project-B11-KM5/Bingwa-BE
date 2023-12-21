@@ -8,18 +8,24 @@ const getPagination = (req, count, page, limit) => {
 
   // Handling multiple values for page and limit
   if (queryParams.page) {
-    page = Array.isArray(queryParams.page) ? queryParams.page[0] : queryParams.page;
+    page = Array.isArray(queryParams.page)
+      ? queryParams.page[0]
+      : queryParams.page;
   }
 
   if (queryParams.limit) {
-    limit = Array.isArray(queryParams.limit) ? queryParams.limit[0] : queryParams.limit;
+    limit = Array.isArray(queryParams.limit)
+      ? queryParams.limit[0]
+      : queryParams.limit;
   }
 
   // Adding filters to the path
   Object.keys(queryParams)
     .filter((key) => key !== "page" && key !== "limit")
     .forEach((key) => {
-      const values = Array.isArray(queryParams[key]) ? queryParams[key] : [queryParams[key]];
+      const values = Array.isArray(queryParams[key])
+        ? queryParams[key]
+        : [queryParams[key]];
       values.forEach((value) => {
         path += `${key}=${encodeURIComponent(value)}&`;
       });

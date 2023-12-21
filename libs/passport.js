@@ -22,17 +22,14 @@ pasport.use(
             email: profile.emails[0].value,
             isVerified: profile.emails[0].verified,
             googleId: profile.id,
-          },
+            userProfile: {
+              create: {
+                fullName: profile.displayName,
+                profilePicture: profile.photos[0].value,
+              },
+            },
+          },    
         });
-
-        let userProfile = await prisma.userProfile.create({
-          data: {
-            fullName: profile.displayName,
-            profilePicture: profile.photos[0].value,
-            userId: user.id,
-          },
-        });
-
         done(null, user);
       } catch (err) {
         done(err, null);

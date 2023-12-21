@@ -130,6 +130,7 @@ module.exports = {
             return prisma.tracking.create({
               data: {
                 userId: Number(req.user.id),
+                courseId:Number(idCourse),
                 lessonId: lesson.id,
                 status: false,
                 createdAt: formattedDate(new Date()),
@@ -252,16 +253,9 @@ module.exports = {
               },
             },
           },
+          paymentCode:true
         },
       });
-      // payments = payments.map((val) => {
-      //   let localDate = new Date(val.createdAt);
-      //   let timeString = localDate.toLocaleTimeString();
-      //   let dateString = localDate.toDateString();
-      //   val.createdAt = `${dateString},${timeString}`;
-      //   return val;
-      // });
-
       res.status(200).json({
         status: true,
         message: "Get all payments successful",
