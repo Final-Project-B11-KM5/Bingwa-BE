@@ -441,8 +441,8 @@ module.exports = {
         };
       }
 
-      if (methodPayment === "Permata" || methodPayment === "Cardless Credit") {
-        parameter.payment_type = methodPayment;
+      if (methodPayment === "Permata") {
+        parameter.payment_type = "permata";
       }
 
       if (methodPayment === "Gopay") {
@@ -471,6 +471,10 @@ module.exports = {
             message,
           };
         }
+      }
+
+      if (methodPayment === "Cardless Credit") {
+        parameter.payment_type = "akulaku";
       }
 
       let transaction = await core.charge(parameter);
