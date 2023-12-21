@@ -26,8 +26,7 @@ module.exports = {
         subject,
         html,
       };
-
-      transport.sendMail(mailOptions);
+      await transport.sendMail(mailOptions);
     } catch (error) {
       console.log(error);
     }
