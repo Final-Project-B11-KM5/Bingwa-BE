@@ -7,12 +7,26 @@ const { formattedDate } = require("../utils/formattedDate");
 module.exports = {
   createCourse: async (req, res, next) => {
     try {
-      const { price, isPremium, categoryId, promotionId, averageRating, createdAt, updatedAt } = req.body;
+      const {
+        price,
+        isPremium,
+        categoryId,
+        promotionId,
+        averageRating,
+        createdAt,
+        updatedAt,
+      } = req.body;
 
-      if (isPremium !== undefined || averageRating !== undefined || createdAt !== undefined || updatedAt !== undefined) {
+      if (
+        isPremium !== undefined ||
+        averageRating !== undefined ||
+        createdAt !== undefined ||
+        updatedAt !== undefined
+      ) {
         return res.status(400).json({
           status: false,
-          message: "isPremium, averageRating, createdAt, or updateAt cannot be provided during course creation",
+          message:
+            "isPremium, averageRating, createdAt, or updateAt cannot be provided during course creation",
           data: null,
         });
       }
@@ -68,7 +82,8 @@ module.exports = {
     try {
       const { idCourse } = req.params;
 
-      const { price, isPremium, averageRating, createdAt, updatedAt } = req.body;
+      const { price, isPremium, averageRating, createdAt, updatedAt } =
+        req.body;
 
       const checkCourse = await prisma.course.findFirst({
         where: {
@@ -83,10 +98,16 @@ module.exports = {
         });
       }
 
-      if (isPremium !== undefined || averageRating !== undefined || createdAt !== undefined || updatedAt !== undefined) {
+      if (
+        isPremium !== undefined ||
+        averageRating !== undefined ||
+        createdAt !== undefined ||
+        updatedAt !== undefined
+      ) {
         return res.status(400).json({
           status: false,
-          message: "isPremium, averageRating, createdAt, or updateAt cannot be provided during course update",
+          message:
+            "isPremium, averageRating, createdAt, or updateAt cannot be provided during course update",
           data: null,
         });
       }
@@ -206,7 +227,14 @@ module.exports = {
   getMyCourse: async (req, res, next) => {
     try {
       const { id } = req.user;
-      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
+      const {
+        search,
+        filter,
+        category,
+        level,
+        page = 1,
+        limit = 10,
+      } = req.query;
 
       const countEnrollCourse = await prisma.course.count({
         where: {
@@ -220,14 +248,22 @@ module.exports = {
         },
       });
 
-      const pagination = getPagination(req, countEnrollCourse, Number(page), Number(limit));
+      const pagination = getPagination(
+        req,
+        countEnrollCourse,
+        Number(page),
+        Number(limit)
+      );
 
       let coursesQuery = {
         where: {},
       };
 
       if (search) {
-        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
+        coursesQuery.where.OR = [
+          { courseName: { contains: search, mode: "insensitive" } },
+          { mentor: { contains: search, mode: "insensitive" } },
+        ];
       }
 
       if (filter) {
@@ -244,7 +280,9 @@ module.exports = {
       }
 
       if (category) {
-        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
+        const categories = Array.isArray(category)
+          ? category.map((c) => c.toLowerCase())
+          : [category.toLowerCase()];
         coursesQuery.where.category = {
           categoryName: { in: categories, mode: "insensitive" },
         };
@@ -315,6 +353,9 @@ module.exports = {
             },
           },
           enrollment: {
+            where: {
+              userId: Number(req.user.id),
+            },
             select: {
               id: true,
               progres: true,
@@ -385,6 +426,10 @@ module.exports = {
             },
           },
           enrollment: {
+            where: {
+              userId: Number(req.user.id),
+              courseId: Number(idCourse),
+            },
             select: {
               progres: true,
             },
@@ -395,6 +440,10 @@ module.exports = {
               lesson: {
                 include: {
                   tracking: {
+                    where: {
+                      userId: Number(req.user.id),
+                      courseId: Number(idCourse),
+                    },
                     select: {
                       status: true,
                     },
@@ -425,14 +474,24 @@ module.exports = {
   },
   getCourse: async (req, res, next) => {
     try {
-      const { search, filter, category, level, page = 1, limit = 10 } = req.query;
+      const {
+        search,
+        filter,
+        category,
+        level,
+        page = 1,
+        limit = 10,
+      } = req.query;
 
       let coursesQuery = {
         where: {},
       };
 
       if (search) {
-        coursesQuery.where.OR = [{ courseName: { contains: search, mode: "insensitive" } }, { mentor: { contains: search, mode: "insensitive" } }];
+        coursesQuery.where.OR = [
+          { courseName: { contains: search, mode: "insensitive" } },
+          { mentor: { contains: search, mode: "insensitive" } },
+        ];
       }
 
       if (filter) {
@@ -455,7 +514,9 @@ module.exports = {
       }
 
       if (category) {
-        const categories = Array.isArray(category) ? category.map((c) => c.toLowerCase()) : [category.toLowerCase()];
+        const categories = Array.isArray(category)
+          ? category.map((c) => c.toLowerCase())
+          : [category.toLowerCase()];
         coursesQuery.where.category = {
           categoryName: { in: categories, mode: "insensitive" },
         };
@@ -520,7 +581,12 @@ module.exports = {
       const totalCourses = await prisma.course.count({
         where: coursesQuery.where,
       });
-      const pagination = getPagination(req, totalCourses, Number(page), Number(limit));
+      const pagination = getPagination(
+        req,
+        totalCourses,
+        Number(page),
+        Number(limit)
+      );
 
       courses = courses.map((val) => {
         val["modul"] = val._count.chapter;
