@@ -130,6 +130,7 @@ module.exports = {
             return prisma.tracking.create({
               data: {
                 userId: Number(req.user.id),
+                courseId:Number(idCourse),
                 lessonId: lesson.id,
                 status: false,
                 createdAt: formattedDate(new Date()),
