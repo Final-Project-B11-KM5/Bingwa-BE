@@ -220,7 +220,7 @@ module.exports = {
       otpCreatedAt = otpObject.createdAt;
 
       const html = await nodemailer.getHtml("verify-otp.ejs", { email, otp });
-      nodemailer.sendEmail(email, "Email Activation", html);
+      await nodemailer.sendEmail(email, "Email Activation", html);
 
       const updateOtp = await prisma.user.update({
         where: { email },
@@ -258,7 +258,7 @@ module.exports = {
         email,
         token,
       });
-      nodemailer.sendEmail(email, "Reset Password", html);
+      await nodemailer.sendEmail(email, "Reset Password", html);
 
       res.status(200).json({
         status: true,
