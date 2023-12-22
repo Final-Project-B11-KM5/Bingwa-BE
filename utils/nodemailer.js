@@ -41,25 +41,6 @@ module.exports = {
       console.log(error);
     }
   },
-  // sendEmail: async (to, subject, html) => {
-  //   const accesToken = await oauth2Client.getAccessToken();
-
-  //   const transport = nodemailer.createTransport({
-  //     service: "gmail",
-  //     port: 465,
-  //     auth: {
-  //       type: "OAuth2",
-  //       user: GOOGLE_SENDER_EMAIL,
-  //       clientId: GOOGLE_CLIENT_ID,
-  //       clientSecret: GOOGLE_CLIENT_SECRET,
-  //       refreshToken: GOOGLE_REFRESH_TOKEN,
-  //       accessToken: accesToken,
-  //     },
-  //   });
-
-  //   transport.sendMail({ to, subject, html });
-  // },
-
   getHtml: (fileName, data) => {
     return new Promise((resolve, reject) => {
       const path = `${__dirname}/../views/templates/${fileName}`;

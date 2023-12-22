@@ -101,7 +101,7 @@ module.exports = {
       });
 
       const html = await nodemailer.getHtml("verify-otp.ejs", { email, otp });
-      nodemailer.sendEmail(email, "Email Activation", html);
+      await nodemailer.sendEmail(email, "Email Activation", html);
 
       res.status(201).json({
         status: true,
