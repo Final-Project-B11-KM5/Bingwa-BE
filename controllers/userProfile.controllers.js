@@ -5,12 +5,14 @@ const path = require("path");
 const imagekit = require("../libs/imagekit");
 
 module.exports = {
+  // Controller to update user profile information
   updateProfile: async (req, res, next) => {
     try {
       const { fullName, phoneNumber, city, country } = req.body;
       const file = req.file;
       let imageURL;
 
+      // Validation checks for mandatory fields
       if (!fullName || !phoneNumber || !city || !country) {
         return res.status(400).json({
           status: false,
@@ -19,6 +21,7 @@ module.exports = {
         });
       }
 
+      // Validation check for full name length
       if (fullName.length > 50) {
         return res.status(400).json({
           status: false,
@@ -27,6 +30,7 @@ module.exports = {
         });
       }
 
+      // Validation checks for phone number format and length
       if (phoneNumber) {
         if (!/^\d+$/.test(phoneNumber)) {
           return res.status(400).json({
@@ -45,6 +49,7 @@ module.exports = {
         }
       }
 
+      // Handle file upload if a new profile picture is provided
       if (file) {
         const strFile = file.buffer.toString("base64");
 
@@ -56,6 +61,7 @@ module.exports = {
         imageURL = url;
       }
 
+      // Update user profile in the database
       const newUserProfile = await prisma.userProfile.update({
         where: {
           userId: Number(req.user.id),

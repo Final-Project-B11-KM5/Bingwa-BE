@@ -10,12 +10,14 @@ const { formattedDate } = require("../utils/formattedDate");
 const { JWT_SECRET_KEY } = process.env;
 
 module.exports = {
+  // Controller for user registration
   register: async (req, res, next) => {
     try {
       let { fullName, email, phoneNumber, password } = req.body;
       const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
       const emailValidator = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+      // Validate required fields
       if (!fullName || !email || !phoneNumber || !password) {
         return res.status(400).json({
           status: false,
@@ -24,6 +26,7 @@ module.exports = {
         });
       }
 
+      // Validate full name length
       if (fullName.length > 50) {
         return res.status(400).json({
           status: false,
@@ -32,6 +35,7 @@ module.exports = {
         });
       }
 
+      // Check for existing user with the same email or phone number
       const existingUser = await prisma.user.findFirst({
         where: {
           OR: [{ email }, { userProfile: { phoneNumber } }],
@@ -46,6 +50,7 @@ module.exports = {
         });
       }
 
+      // Validate email format
       if (!emailValidator.test(email)) {
         return res.status(400).json({
           status: false,
@@ -54,6 +59,7 @@ module.exports = {
         });
       }
 
+      // Validate phone number format
       if (!/^\d+$/.test(phoneNumber)) {
         return res.status(400).json({
           status: false,
@@ -62,6 +68,7 @@ module.exports = {
         });
       }
 
+      // Validate phone number length
       if (phoneNumber.length < 10 || phoneNumber.length > 12) {
         return res.status(400).json({
           status: false,
@@ -70,6 +77,7 @@ module.exports = {
         });
       }
 
+      // Validate password format
       if (!passwordValidator.test(password)) {
         return res.status(400).json({
           status: false,
@@ -78,11 +86,15 @@ module.exports = {
         });
       }
 
+      // Generate and store OTP for email verification
       const otpObject = generatedOTP();
       otp = otpObject.code;
       otpCreatedAt = otpObject.createdAt;
 
+      // Encrypt user password
       let encryptedPassword = await bcrypt.hash(password, 10);
+
+      // Create new user and user profile records
       let newUser = await prisma.user.create({
         data: {
           email,
@@ -100,6 +112,7 @@ module.exports = {
         },
       });
 
+      // Send email verification OTP
       const html = await nodemailer.getHtml("verify-otp.ejs", { email, otp });
       await nodemailer.sendEmail(email, "Email Activation", html);
 
@@ -113,16 +126,19 @@ module.exports = {
     }
   },
 
+  // Controller for user login
   login: async (req, res, next) => {
     try {
       let { emailOrPhoneNumber, password } = req.body;
 
+      // Find user record based on email or phone number
       const user = await prisma.user.findFirst({
         where: {
           OR: [{ email: emailOrPhoneNumber }, { userProfile: { phoneNumber: emailOrPhoneNumber } }],
         },
       });
 
+      // Return error if user not found
       if (!user) {
         return res.status(401).json({
           status: false,
@@ -131,6 +147,7 @@ module.exports = {
         });
       }
 
+      // Check if the provided password is correct
       let isPasswordCorrect = await bcrypt.compare(password, user.password);
       if (!isPasswordCorrect) {
         return res.status(401).json({
@@ -140,6 +157,7 @@ module.exports = {
         });
       }
 
+      // Return error if the user account is not verified
       if (!user.isVerified) {
         return res.status(403).json({
           status: false,
@@ -148,6 +166,7 @@ module.exports = {
         });
       }
 
+      // Generate JWT token for authentication
       let token = jwt.sign({ id: user.id }, JWT_SECRET_KEY);
 
       return res.status(200).json({
@@ -160,15 +179,19 @@ module.exports = {
     }
   },
 
+  // Controller for verifying email OTP
   verifyOtp: async (req, res, next) => {
     try {
       let { email, otp } = req.body;
+      // Set OTP expiration time to 30 minutes
       const otpExpired = 30 * 60 * 1000;
 
+      // Find the user based on the provided email
       let user = await prisma.user.findUnique({
         where: { email },
       });
 
+      // Return error if user not found
       if (!user) {
         return res.status(404).json({
           status: false,
@@ -177,6 +200,7 @@ module.exports = {
         });
       }
 
+      // Return error if the provided OTP is incorrect
       if (user.otp !== otp) {
         return res.status(401).json({
           status: false,
@@ -196,6 +220,7 @@ module.exports = {
         });
       }
 
+      // Update user's verification status
       let updateUser = await prisma.user.update({
         where: { email },
         data: { isVerified: true },
@@ -211,17 +236,21 @@ module.exports = {
     }
   },
 
+  // Controller to resend OTP for email verification
   resendOtp: async (req, res, next) => {
     try {
       const { email } = req.body;
 
+      // Generate a new OTP and its creation timestamp
       const otpObject = generatedOTP();
       otp = otpObject.code;
       otpCreatedAt = otpObject.createdAt;
 
+      // Send the new OTP via email
       const html = await nodemailer.getHtml("verify-otp.ejs", { email, otp });
       await nodemailer.sendEmail(email, "Email Activation", html);
 
+      // Update user's OTP and OTP creation timestamp
       const updateOtp = await prisma.user.update({
         where: { email },
         data: { otp, otpCreatedAt },
@@ -237,14 +266,17 @@ module.exports = {
     }
   },
 
+  // Controller to initiate the process of resetting the user's password
   forgetPasswordUser: async (req, res, next) => {
     try {
       let { email } = req.body;
 
+      // Find the user based on the provided email
       const user = await prisma.user.findUnique({
         where: { email },
       });
 
+      // Return error if user not found
       if (!user) {
         return res.status(404).json({
           status: false,
@@ -253,7 +285,10 @@ module.exports = {
         });
       }
 
+      // Generate a JWT token for password reset with a 1-hour expiration
       let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY, { expiresIn: "1h" });
+
+      // Send an email with the password reset link
       const html = await nodemailer.getHtml("email-password-reset.ejs", {
         email,
         token,
@@ -270,11 +305,13 @@ module.exports = {
     }
   },
 
+  // Controller to update the user's password after password reset
   updatePasswordUser: async (req, res, next) => {
     try {
       let { token } = req.query;
       let { password, passwordConfirmation } = req.body;
 
+      // Validate the new password format
       const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
 
       if (!passwordValidator.test(password)) {
@@ -285,6 +322,7 @@ module.exports = {
         });
       }
 
+      // Confirm that the password and confirmation match
       if (password !== passwordConfirmation) {
         return res.status(400).json({
           status: false,
@@ -293,20 +331,24 @@ module.exports = {
         });
       }
 
+      // Hash the new password
       let encryptedPassword = await bcrypt.hash(password, 10);
-      // check Token Is already used or not
+
+      // Check if the token has already been used
       const user = await prisma.user.findFirst({
         where: {
           resetPasswordToken: token,
         },
       });
+
       if (user) {
         return res.status(400).json({
           status: false,
           message: "Token Is Alredy Use , generate new token to reset password",
         });
       }
-      // end check Token Is already used or not
+
+      // Verify the JWT token and update the user's password
       jwt.verify(token, JWT_SECRET_KEY, async (err, decoded) => {
         if (err) {
           return res.status(400).json({
@@ -322,7 +364,8 @@ module.exports = {
           data: { password: encryptedPassword, resetPasswordToken: token },
         });
 
-        let newNotification = await prisma.notification.create({
+        // Create a notification for the user
+        await prisma.notification.create({
           data: {
             title: "Notifikasi",
             message: "Password berhasil diubah!",
@@ -338,13 +381,14 @@ module.exports = {
         });
       });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   },
 
+  // Controller to authenticate a user based on their ID
   authenticateUser: async (req, res, next) => {
     try {
+      // Find the user based on their ID and include their profile information
       const user = await prisma.user.findUnique({
         where: { id: Number(req.user.id) },
         include: {
@@ -352,6 +396,7 @@ module.exports = {
         },
       });
 
+      // Return error if user not found
       if (!user) {
         return res.status(404).json({
           status: false,
@@ -370,10 +415,12 @@ module.exports = {
     }
   },
 
+  // Controller to change the user's password
   changePasswordUser: async (req, res, next) => {
     try {
       const { oldPassword, newPassword, newPasswordConfirmation } = req.body;
 
+      // Check if required parameters are provided
       if (!oldPassword || !newPassword || !newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
@@ -382,6 +429,7 @@ module.exports = {
         });
       }
 
+      // Check if the old password provided matches the user's current password
       let isOldPasswordCorrect = await bcrypt.compare(oldPassword, req.user.password);
       if (!isOldPasswordCorrect) {
         return res.status(401).json({
@@ -391,6 +439,7 @@ module.exports = {
         });
       }
 
+      // Validate the format of the new password using a regular expression
       const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
 
       if (!passwordValidator.test(newPassword)) {
@@ -401,6 +450,7 @@ module.exports = {
         });
       }
 
+      // Check if the new password matches the password confirmation
       if (newPassword !== newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
@@ -409,14 +459,17 @@ module.exports = {
         });
       }
 
+      // Hash the new password
       let encryptedNewPassword = await bcrypt.hash(newPassword, 10);
 
+      // Update user's password in the database
       let updateUser = await prisma.user.update({
         where: { id: Number(req.user.id) },
         data: { password: encryptedNewPassword },
       });
 
-      let newNotification = await prisma.notification.create({
+      // Create a notification for the user
+      await prisma.notification.create({
         data: {
           title: "Notification",
           message: "Password successfully changed!",
@@ -435,7 +488,9 @@ module.exports = {
     }
   },
 
+  // Controller for Google OAuth2 authentication
   googleOauth2: (req, res) => {
+    // Generate a JWT token for the authenticated user
     let token = jwt.sign({ id: req.user.id }, JWT_SECRET_KEY);
 
     return res.status(200).json({

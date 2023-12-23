@@ -26,6 +26,7 @@ module.exports = {
         subject,
         html,
       };
+
       await new Promise((resolve, reject) => {
         transport.sendMail(mailOptions, (err, info) => {
           if (err) {

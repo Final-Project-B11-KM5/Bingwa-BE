@@ -3,14 +3,17 @@ const prisma = new PrismaClient();
 
 const { formattedDate } = require("../utils/formattedDate");
 
+// Variable to store the timeout for progress update reminders
 let reminderTimeout;
 
 module.exports = {
+  // Controller for updating lesson tracking and progress
   updateTracking: async (req, res, next) => {
     try {
       const lessonId = req.params.lessonId;
       const { createdAt, updatedAt } = req.body;
 
+      // Validate the provided lessonId
       if (isNaN(lessonId) || lessonId <= 0) {
         return res.status(400).json({
           status: false,
@@ -19,6 +22,7 @@ module.exports = {
         });
       }
 
+      // Validate that createdAt or updatedAt is not provided during tracking update
       if (createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
@@ -27,10 +31,12 @@ module.exports = {
         });
       }
 
+      // Find the lesson details
       const lesson = await prisma.lesson.findUnique({
         where: { id: Number(lessonId) },
       });
 
+      // Check if the lesson exists
       if (!lesson) {
         return res.status(404).json({
           status: false,
@@ -39,7 +45,7 @@ module.exports = {
         });
       }
 
-      // find id traking lesson
+      // Find the tracking record for the user and lesson
       const trackingId = await prisma.tracking.findFirst({
         where: {
           lessonId: Number(lessonId),
@@ -49,6 +55,8 @@ module.exports = {
           id: true,
         },
       });
+
+      // Update the tracking status and timestamp
       const tracking = await prisma.tracking.update({
         where: {
           id: trackingId.id,
@@ -59,7 +67,7 @@ module.exports = {
         },
       });
 
-      // update progres course
+      // Update course progress for the user
       let courseId = tracking.courseId;
       let lessonLenght;
       let lessonTrue = 0;
@@ -79,7 +87,7 @@ module.exports = {
       });
       newProgres = (100 / lessonLenght) * lessonTrue;
 
-      // find enrollment id
+      // Find enrollment ID
       const enrolId = await prisma.enrollment.findFirst({
         where: {
           userId: Number(req.user.id),
@@ -89,6 +97,8 @@ module.exports = {
           id: true,
         },
       });
+
+      // Update the progress in the enrollment record
       const data = await prisma.enrollment.update({
         where: {
           id: enrolId.id,
@@ -97,22 +107,25 @@ module.exports = {
           progres: newProgres.toFixed(1),
         },
       });
-      // end update progres
 
+      // Clear existing progress update reminders
       if (reminderTimeout) {
         clearTimeout(reminderTimeout);
       }
 
+      // Find all tracking records for the user with incomplete status
       const allTracking = await prisma.tracking.findMany({
         where: { userId: Number(req.user.id), status: false },
       });
 
+      // Schedule a progress update reminder if there are incomplete lessons
       if (allTracking.length > 0 && !allTracking[0].status) {
         reminderTimeout = setTimeout(async () => {
           const lastUpdate = new Date(tracking.updatedAt).getTime();
           const currentTime = new Date().getTime();
           const timeDifference = currentTime - lastUpdate;
 
+          // Send a reminder notification if no progress update in the last 24 hours
           if (timeDifference >= 24 * 60 * 60 * 1000) {
             await prisma.notification.create({
               data: {
@@ -132,7 +145,6 @@ module.exports = {
         data: { tracking },
       });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   },

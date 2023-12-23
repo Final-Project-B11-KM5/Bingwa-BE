@@ -1,5 +1,6 @@
 const midtransClient = require("midtrans-client");
 const axios = require("axios");
+
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -9,7 +10,10 @@ const { generatedPaymentCode } = require("../utils/codeGenerator");
 
 const { PAYMENT_DEV_CLIENT_KEY, PAYMENT_DEV_SERVER_KEY, PAYMENT_PROD_CLIENT_KEY, PAYMENT_PROD_SERVER_KEY } = process.env;
 
+// Setting the environment (true for production, false for development)
 const isProduction = false;
+
+// Initializing Midtrans CoreApi with appropriate keys based on the environment
 let core = new midtransClient.CoreApi({
   // Set to true if you want Production Environment (accept real transaction).
   isProduction: isProduction,
@@ -18,6 +22,7 @@ let core = new midtransClient.CoreApi({
 });
 
 module.exports = {
+  // Controller for creating a payment
   createPayment: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
@@ -25,6 +30,7 @@ module.exports = {
       let PPN = 11 / 100;
       let amount;
 
+      // Validate that createdAt and updatedAt are not provided during payment creation
       if (createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
@@ -33,7 +39,7 @@ module.exports = {
         });
       }
 
-      // find Course
+      // Find the course for which payment is being created
       let course = await prisma.course.findFirst({
         where: {
           id: Number(idCourse),
@@ -46,6 +52,8 @@ module.exports = {
           },
         },
       });
+
+      // Handle case when the course is not found
       if (!course) {
         return res.status(404).json({
           status: false,
@@ -53,6 +61,8 @@ module.exports = {
           data: null,
         });
       }
+
+      // Handle case when trying to buy a free course
       if (!course.isPremium) {
         return res.status(400).json({
           status: false,
@@ -60,9 +70,8 @@ module.exports = {
           data: null,
         });
       }
-      // end find course
 
-      // check user alredy enroll course or not
+      // Check if the user is already enrolled in the course
       const statusEnrollUser = await prisma.enrollment.findFirst({
         where: {
           courseId: Number(idCourse),
@@ -70,6 +79,7 @@ module.exports = {
         },
       });
 
+      // Handle case when the user is already enrolled
       if (statusEnrollUser) {
         return res.status(400).json({
           status: false,
@@ -77,12 +87,14 @@ module.exports = {
           data: null,
         });
       }
-      // end check user alredy enroll course or not
 
-      // create payment
+      // Generate a modified name for the payment code
       const modifiedName = course.category.categoryName.replace(/\s+/g, "-");
+
+      // Calculate the payment amount with PPN
       amount = course.price * PPN + course.price;
 
+      // Validate the methodPayment field
       if (!methodPayment || typeof methodPayment != "string") {
         return res.status(400).json({
           status: false,
@@ -91,6 +103,7 @@ module.exports = {
         });
       }
       try {
+        // Create a new payment record in the database
         let newPayment = await prisma.payment.create({
           data: {
             amount: parseInt(amount),
@@ -103,12 +116,14 @@ module.exports = {
             updatedAt: formattedDate(new Date()),
           },
         });
+
+        // Send a success email notification to the user
         const html = await nodemailer.getHtml("transaction-succes.ejs", {
           course: course.courseName,
         });
         await nodemailer.sendEmail(req.user.email, "Email Transaction", html);
 
-        // update data enrollment when payment succesfully
+        // Update the enrollment data when payment is successful
         await prisma.enrollment.create({
           data: {
             userId: Number(req.user.id),
@@ -117,6 +132,7 @@ module.exports = {
           },
         });
 
+        // Create tracking records for each lesson in the course
         const lessons = await prisma.lesson.findMany({
           where: {
             chapter: {
@@ -130,7 +146,7 @@ module.exports = {
             return prisma.tracking.create({
               data: {
                 userId: Number(req.user.id),
-                courseId:Number(idCourse),
+                courseId: Number(idCourse),
                 lessonId: lesson.id,
                 status: false,
                 createdAt: formattedDate(new Date()),
@@ -153,7 +169,6 @@ module.exports = {
           data: { newPayment },
         });
       } catch (err) {
-        console.log(err);
         res.status(400).json({
           status: false,
           message: "Error When Create Payment,make sure request is valid type",
@@ -166,12 +181,14 @@ module.exports = {
     }
   },
 
+  // Controller for getting the detail of a payment
   getDetailPayment: async (req, res, next) => {
     try {
       const { idCourse } = req.params;
       const PPN = 11 / 100;
       let amount;
-      // find course
+
+      // Find the course for which the payment detail is being requested
       let course = await prisma.course.findFirst({
         where: {
           id: Number(idCourse),
@@ -188,6 +205,8 @@ module.exports = {
           },
         },
       });
+
+      // Handle case when the course is not found
       if (!course) {
         return res.status(404).json({
           status: false,
@@ -195,8 +214,10 @@ module.exports = {
           data: null,
         });
       }
-      // end find course
+
+      // Calculate the payment amount with PPN
       amount = course.price * PPN + course.price;
+
       res.status(200).json({
         status: true,
         message: `Succes To Show Detail Payment`,
@@ -211,10 +232,12 @@ module.exports = {
     }
   },
 
+  // Controller for getting all payments with search functionality
   getAllPayments: async (req, res, next) => {
     try {
       const { search } = req.query;
 
+      // Find payments based on search criteria
       let payments = await prisma.payment.findMany({
         where: {
           OR: [
@@ -253,7 +276,7 @@ module.exports = {
               },
             },
           },
-          paymentCode:true
+          paymentCode: true,
         },
       });
       res.status(200).json({
@@ -266,8 +289,10 @@ module.exports = {
     }
   },
 
+  // Controller for getting the payment history of the authenticated user
   getPaymentHistory: async (req, res, next) => {
     try {
+      // Find all payments for the authenticated user
       let payments = await prisma.payment.findMany({
         where: {
           userId: Number(req.user.id),
@@ -296,6 +321,7 @@ module.exports = {
           },
         },
       });
+
       // Modify object property _count to modul
       payments = payments.map((val) => {
         val.course.modul = val.course._count.chapter;
@@ -313,11 +339,13 @@ module.exports = {
     }
   },
 
+  // Controller for creating payment using Midtrans API
   createPaymentMidtrans: async (req, res, next) => {
     try {
       const courseId = req.params.courseId;
       const { methodPayment, cardNumber, cvv, expiryDate, bankName, store, message, createdAt, updatedAt } = req.body;
 
+      // Validate that createdAt and updatedAt are not provided during payment creation
       if (createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
@@ -326,15 +354,19 @@ module.exports = {
         });
       }
 
+      // Extract month and year from expiryDate
       let month = expiryDate.slice(0, 2);
       let year = expiryDate.slice(3);
 
+      // Set the Midtrans API URL based on the environment
       const apiUrl = isProduction ? `https://api.midtrans.com/v2/token?client_key=${PAYMENT_PROD_CLIENT_KEY}` : `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_DEV_CLIENT_KEY}`;
 
+      // Get card token from Midtrans API
       const response = await axios.get(`${apiUrl}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
 
       const token_id = response.data.token_id;
 
+      // Find user and course details
       const user = await prisma.user.findUnique({
         where: { id: Number(req.user.id) },
         include: {
@@ -353,6 +385,7 @@ module.exports = {
         },
       });
 
+      // Handle case when the course is not found
       if (!course) {
         return res.status(404).json({
           status: false,
@@ -361,6 +394,7 @@ module.exports = {
         });
       }
 
+      // Handle case when trying to buy a free course
       if (course.isPremium === false) {
         return res.status(400).json({
           status: false,
@@ -369,6 +403,7 @@ module.exports = {
         });
       }
 
+      // Check if the user is already enrolled in the course
       const enrollmentUser = await prisma.enrollment.findFirst({
         where: {
           courseId: Number(courseId),
@@ -376,6 +411,7 @@ module.exports = {
         },
       });
 
+      // Handle case when the user is already enrolled
       if (enrollmentUser) {
         return res.status(400).json({
           status: false,
@@ -384,9 +420,13 @@ module.exports = {
         });
       }
 
+      // Generate a modified name for the payment code
       const modifiedName = course.category.categoryName.replace(/\s+/g, "-");
+
+      // Calculate the total price for the payment
       const totalPrice = course.price * 0.11 + course.price;
 
+      // Create a new payment record in the database
       let newPayment = await prisma.payment.create({
         data: {
           amount: parseInt(totalPrice),
@@ -399,6 +439,7 @@ module.exports = {
         },
       });
 
+      // Define payment parameters for Midtrans API
       let parameter = {
         transaction_details: {
           order_id: `${modifiedName}-${generatedPaymentCode()}`,
@@ -411,7 +452,16 @@ module.exports = {
         },
       };
 
+      // Set payment type based on the methodPayment
       if (methodPayment === "Credit Card") {
+        if (!cardNumber || !cvv || !expiryDate || bankName !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For Credit Card payments, please provide only card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "credit_card";
         parameter.credit_card = {
           token_id: token_id,
@@ -420,6 +470,14 @@ module.exports = {
       }
 
       if (methodPayment === "Bank Transfer") {
+        if (!bankName || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required fields. Unnecessary fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "bank_transfer";
         parameter.bank_transfer = {
           bank: bankName,
@@ -427,6 +485,14 @@ module.exports = {
       }
 
       if (methodPayment === "Mandiri Bill") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "echannel";
         parameter.echannel = {
           bill_info1: "Payment:",
@@ -435,10 +501,26 @@ module.exports = {
       }
 
       if (methodPayment === "Permata") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "permata";
       }
 
       if (methodPayment === "Gopay") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "gopay";
         parameter.gopay = {
           enable_callback: true,
@@ -447,6 +529,14 @@ module.exports = {
       }
 
       if (methodPayment === "Counter") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "Please provide only the required card details (cardNumber, cvv, expiryDate) for this payment method. Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "cstore";
         if (store === "alfamart") {
           parameter.cstore = {
@@ -467,16 +557,27 @@ module.exports = {
       }
 
       if (methodPayment === "Cardless Credit") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "akulaku";
       }
 
+      // Charge the transaction using Midtrans API
       let transaction = await core.charge(parameter);
 
+      // Send email notification to the user
       const html = await nodemailer.getHtml("transaction-succes.ejs", {
         course: course.courseName,
       });
       await nodemailer.sendEmail(req.user.email, "Email Transaction", html);
 
+      // Create enrollment record for the user
       await prisma.enrollment.create({
         data: {
           userId: Number(req.user.id),
@@ -485,6 +586,7 @@ module.exports = {
         },
       });
 
+      // Create tracking records for each lesson in the course
       const lessons = await prisma.lesson.findMany({
         where: {
           chapter: {
@@ -528,8 +630,10 @@ module.exports = {
     }
   },
 
+  // Controller to handle Midtrans payment notifications
   handlePaymentNotification: async (req, res) => {
     try {
+      // Extract payment notification data from the request body
       let notification = {
         currency: req.body.currency,
         fraud_status: req.body.fraud_status,
@@ -544,8 +648,10 @@ module.exports = {
         merchant_id: req.body.merchant_id,
       };
 
+      // Process the payment notification using Midtrans API
       let data = await core.transaction.notification(notification);
 
+      // Update the payment status in the database
       const updatedPayment = await prisma.payment.update({
         where: { paymentCode: data.order_id },
         data: {
