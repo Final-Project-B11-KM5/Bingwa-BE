@@ -1,13 +1,16 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+
 const { formattedDate } = require("../utils/formattedDate");
 
+// Helper function to find a chapter by its ID
 const findChapterById = async (chapterId) => {
   return await prisma.chapter.findUnique({
     where: { id: Number(chapterId) },
   });
 };
 
+// Helper function to find a lesson by its ID, including associated chapter details
 const findLessonById = async (lessonId) => {
   return await prisma.lesson.findUnique({
     where: { id: Number(lessonId) },
@@ -21,10 +24,12 @@ const findLessonById = async (lessonId) => {
   });
 };
 
+// Controller for creating a new lesson
 const createLesson = async (req, res, next) => {
   try {
     const { lessonName, videoURL, chapterId, createdAt, updatedAt } = req.body;
 
+    // Validate the presence of required fields
     if (!lessonName || !videoURL || !chapterId) {
       return res.status(400).json({
         status: false,
@@ -33,6 +38,7 @@ const createLesson = async (req, res, next) => {
       });
     }
 
+    // Validate the absence of createdAt or updatedAt during lesson creation
     if (createdAt !== undefined || updatedAt !== undefined) {
       return res.status(400).json({
         status: false,
@@ -42,8 +48,10 @@ const createLesson = async (req, res, next) => {
       });
     }
 
+    // Check if the specified chapter exists
     const chapter = await findChapterById(chapterId);
 
+    // Return an error if the chapter is not found
     if (!chapter) {
       return res.status(404).json({
         status: false,
@@ -52,6 +60,7 @@ const createLesson = async (req, res, next) => {
       });
     }
 
+    // Retrieve all users and enrollments associated with the chapter's course
     const users = await prisma.user.findMany();
 
     const enrollments = await prisma.enrollment.findMany({
@@ -60,6 +69,8 @@ const createLesson = async (req, res, next) => {
         courseId: chapter.courseId,
       },
     });
+
+    // Create a new lesson record
     const newLesson = await prisma.lesson.create({
       data: {
         lessonName,
@@ -70,7 +81,7 @@ const createLesson = async (req, res, next) => {
       },
     });
 
-    // menambahkan fitur update progres jika sudah enrol course
+    // Create tracking records for each enrollment to monitor user progress
     const trackingRecords = await Promise.all(
       enrollments.map(async (enrollment) => {
         return prisma.tracking.create({
@@ -147,10 +158,12 @@ const createLesson = async (req, res, next) => {
   }
 };
 
+// Controller for retrieving all lessons, optionally filtered by search query
 const getAllLessons = async (req, res, next) => {
   try {
     const { search } = req.query;
 
+    // Retrieve all lessons based on the search criteria
     const lessons = await prisma.lesson.findMany({
       where: {
         OR: [
@@ -201,12 +214,15 @@ const getAllLessons = async (req, res, next) => {
   }
 };
 
+// Controller for retrieving details of a specific lesson
 const getDetailLesson = async (req, res, next) => {
   try {
     const lessonId = req.params.id;
 
+    // Retrieve details of the specified lesson, including associated chapter details
     const lesson = await findLessonById(lessonId);
 
+    // Return an error if the lesson is not found
     if (!lesson) {
       return res.status(404).json({
         status: false,
@@ -225,11 +241,13 @@ const getDetailLesson = async (req, res, next) => {
   }
 };
 
+// Controller for updating details of a specific lesson
 const updateDetailLesson = async (req, res, next) => {
   try {
     const lessonId = req.params.id;
     const { lessonName, videoURL, chapterId, createdAt, updatedAt } = req.body;
 
+    // Validate the presence of required fields
     if (!lessonName || !videoURL || !chapterId) {
       return res.status(400).json({
         status: false,
@@ -238,6 +256,7 @@ const updateDetailLesson = async (req, res, next) => {
       });
     }
 
+    // Validate the absence of createdAt or updatedAt during lesson update
     if (createdAt !== undefined || updatedAt !== undefined) {
       return res.status(400).json({
         status: false,
@@ -247,8 +266,10 @@ const updateDetailLesson = async (req, res, next) => {
       });
     }
 
+    // Retrieve details of the specified lesson
     const lesson = await findLessonById(lessonId);
 
+    // Return an error if the lesson is not found
     if (!lesson) {
       return res.status(404).json({
         status: false,
@@ -257,8 +278,10 @@ const updateDetailLesson = async (req, res, next) => {
       });
     }
 
+    // Check if the specified chapter exists
     const chapter = await findChapterById(chapterId);
 
+    // Return an error if the chapter is not found
     if (!chapter) {
       return res.status(404).json({
         status: false,
@@ -267,6 +290,7 @@ const updateDetailLesson = async (req, res, next) => {
       });
     }
 
+    // Update details of the specified lesson
     const updatedLesson = await prisma.lesson.update({
       where: { id: Number(lessonId) },
       data: {
@@ -287,12 +311,15 @@ const updateDetailLesson = async (req, res, next) => {
   }
 };
 
+// Controller for deleting a specific lesson by its ID
 const deleteLessonById = async (req, res, next) => {
   try {
     const lessonId = req.params.id;
 
+    // Retrieve details of the specified lesson
     const lesson = await findLessonById(lessonId);
 
+    // Return an error if the lesson is not found
     if (!lesson) {
       return res.status(404).json({
         status: false,
@@ -301,6 +328,7 @@ const deleteLessonById = async (req, res, next) => {
       });
     }
 
+    // Delete the specified lesson
     const deletedLesson = await prisma.lesson.delete({
       where: { id: Number(lessonId) },
     });
@@ -315,10 +343,14 @@ const deleteLessonById = async (req, res, next) => {
   }
 };
 
+// Controller for filtering or searching lessons based on query parameters
 const filterLesson = async (req, res, next) => {
   try {
     const { chapter, lesson, course } = req.query;
+
+    // Check if any of the filter parameters is provided
     if (chapter || lesson || course) {
+      // Perform a search based on the provided filters
       let filterLesson = await prisma.lesson.findMany({
         where: {
           OR: [
@@ -376,14 +408,19 @@ const filterLesson = async (req, res, next) => {
   }
 };
 
+// Controller for retrieving all lessons in a course based on the course ID
 async function showLessonByCourse(req, res, next) {
   try {
     const { idCourse } = req.params;
+
+    // Find the course with the specified ID
     const findCourse = await prisma.course.findFirst({
       where: {
         id: Number(idCourse),
       },
     });
+
+    // Return an error if the course is not found
     if (!findCourse) {
       return res.status(404).json({
         status: false,
@@ -392,6 +429,7 @@ async function showLessonByCourse(req, res, next) {
       });
     }
 
+    // Retrieve all chapters and associated lessons for the specified course
     let filterLesson = await prisma.chapter.findMany({
       where: {
         courseId: Number(idCourse),
@@ -411,7 +449,6 @@ async function showLessonByCourse(req, res, next) {
       data: filterLesson,
     });
   } catch (err) {
-    console.log(err);
     next(err);
   }
 }
