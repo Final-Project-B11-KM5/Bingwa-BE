@@ -36,7 +36,8 @@ const createLesson = async (req, res, next) => {
     if (createdAt !== undefined || updatedAt !== undefined) {
       return res.status(400).json({
         status: false,
-        message: "createdAt or updateAt cannot be provided during lesson creation",
+        message:
+          "createdAt or updateAt cannot be provided during lesson creation",
         data: null,
       });
     }
@@ -91,6 +92,50 @@ const createLesson = async (req, res, next) => {
         });
       })
     );
+
+    // update Proges when create lesson
+    const findLesson = await prisma.tracking.findMany({
+      where: {
+        courseId: chapter.courseId,
+        userId: { in: users.map((user) => user.id) },
+      },
+      select: {
+        courseId: true,
+        lessonId: true,
+        lesson: true,
+        userId: true,
+        status: true,
+      },
+    });
+    const updateProgres = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        let lessonLenght;
+        let lessonTrue = 0;
+        let newProgres;
+        let lesson = findLesson.filter((val) => {
+          if (
+            val.courseId == enrollment.courseId &&
+            val.userId == enrollment.userId
+          ) {
+            return true;
+          }
+        });
+        lessonLenght = lesson.length;
+        lessonTrue = lesson.filter((val) => {
+          return val.status == true;
+        }).length;
+        newProgres = (lessonTrue / lessonLenght) * 100;
+        return prisma.enrollment.update({
+          where: {
+            id: enrollment.id,
+          },
+          data: {
+            progres: newProgres.toFixed(1),
+          },
+        });
+      })
+    );
+    // end update Proges when create lesson
 
     res.status(201).json({
       status: true,
@@ -196,7 +241,8 @@ const updateDetailLesson = async (req, res, next) => {
     if (createdAt !== undefined || updatedAt !== undefined) {
       return res.status(400).json({
         status: false,
-        message: "createdAt or updateAt cannot be provided during lesson update",
+        message:
+          "createdAt or updateAt cannot be provided during lesson update",
         data: null,
       });
     }
