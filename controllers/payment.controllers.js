@@ -454,6 +454,14 @@ module.exports = {
 
       // Set payment type based on the methodPayment
       if (methodPayment === "Credit Card") {
+        if (!cardNumber || !cvv || !expiryDate || bankName !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For Credit Card payments, please provide only card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "credit_card";
         parameter.credit_card = {
           token_id: token_id,
@@ -462,6 +470,14 @@ module.exports = {
       }
 
       if (methodPayment === "Bank Transfer") {
+        if (!bankName || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required fields. Unnecessary fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "bank_transfer";
         parameter.bank_transfer = {
           bank: bankName,
@@ -469,6 +485,14 @@ module.exports = {
       }
 
       if (methodPayment === "Mandiri Bill") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "echannel";
         parameter.echannel = {
           bill_info1: "Payment:",
@@ -477,10 +501,26 @@ module.exports = {
       }
 
       if (methodPayment === "Permata") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "permata";
       }
 
       if (methodPayment === "Gopay") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "gopay";
         parameter.gopay = {
           enable_callback: true,
@@ -489,6 +529,14 @@ module.exports = {
       }
 
       if (methodPayment === "Counter") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "Please provide only the required card details (cardNumber, cvv, expiryDate) for this payment method. Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "cstore";
         if (store === "alfamart") {
           parameter.cstore = {
@@ -509,6 +557,14 @@ module.exports = {
       }
 
       if (methodPayment === "Cardless Credit") {
+        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+          return res.status(400).json({
+            status: false,
+            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            data: null,
+          });
+        }
+
         parameter.payment_type = "akulaku";
       }
 
