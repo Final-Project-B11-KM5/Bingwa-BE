@@ -371,6 +371,7 @@ module.exports = {
 
       // Modify object property count to modul
       course = course.map((val) => {
+        val.enrollment = val.enrollment[0];
         val["modul"] = val._count.chapter;
         delete val["_count"];
         return val;
@@ -422,6 +423,7 @@ module.exports = {
         include: {
           category: {
             select: {
+              id:true,
               categoryName: true,
             },
           },
@@ -431,6 +433,7 @@ module.exports = {
               courseId: Number(idCourse),
             },
             select: {
+              id:true,
               progres: true,
             },
           },
@@ -459,7 +462,8 @@ module.exports = {
           },
         },
       });
-      // Modify object property count to modul
+      // Modify object property count to modul and property enrollment
+      course.enrollment = course.enrollment[0];
       course["modul"] = course._count.chapter;
       delete course["_count"];
 
