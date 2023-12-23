@@ -2873,16 +2873,14 @@ components:
           type: integer
           example: 2
         enrollment:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: integer
-                example: 1
-              progres:
-                type: string
-                example: "33.3"
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            progres:
+              type: string
+              example: "33.3"
     CourseModelEnroll:
       title: Course
       type: object
@@ -2927,16 +2925,14 @@ components:
               type: string
               example: "Web Development"
         enrollment:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: integer
-                example: 1
-              progres:
-                type: string
-                example: "33.3"
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            progres:
+              type: string
+              example: "33.3"
         modul:
           type: integer
           example: 2
