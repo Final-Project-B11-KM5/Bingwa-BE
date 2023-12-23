@@ -1,10 +1,13 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+
 const { formattedDate } = require("../utils/formattedDate");
 
 module.exports = {
+  // Controller for retrieving all notifications for the authenticated user
   getAllNotifications: async (req, res, next) => {
     try {
+      // Retrieve all notifications for the authenticated user
       const notifications = await prisma.notification.findMany({
         where: { userId: Number(req.user.id) },
       });
@@ -19,10 +22,12 @@ module.exports = {
     }
   },
 
+  // Controller for creating notifications for all users
   createNotification: async (req, res, next) => {
     try {
       const { title, message, createdAt } = req.body;
 
+      // Validate the presence of required fields
       if (!title || !message) {
         return res.status(400).json({
           status: false,
@@ -30,6 +35,7 @@ module.exports = {
         });
       }
 
+      // Validate the absence of createdAt during notification creation
       if (createdAt !== undefined) {
         return res.status(400).json({
           status: false,
@@ -38,8 +44,10 @@ module.exports = {
         });
       }
 
+      // Retrieve all users from the database
       const allUsers = await prisma.user.findMany();
 
+      // Create notifications for all users using Promise.all
       const newNotification = await Promise.all(
         allUsers.map(async (user) => {
           return prisma.notification.create({
@@ -74,8 +82,10 @@ module.exports = {
     }
   },
 
+  // Controller for marking all notifications as read for the authenticated user
   markNotificationsAsRead: async (req, res, next) => {
     try {
+      // Mark all notifications as read for the authenticated users
       const notifications = await prisma.notification.updateMany({
         where: { userId: Number(req.user.id) },
         data: {
