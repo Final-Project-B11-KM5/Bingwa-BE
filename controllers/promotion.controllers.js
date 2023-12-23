@@ -3,10 +3,12 @@ const prisma = new PrismaClient();
 
 const { formattedDate } = require("../utils/formattedDate");
 
+// Controller for creating a new promotion
 createPromotion = async (req, res, next) => {
   try {
     const { discount, startDate, endDate } = req.body;
 
+    // Validate that all required fields are provided
     if (!discount || !startDate || !endDate) {
       return res.status(400).json({
         status: false,
@@ -14,16 +16,20 @@ createPromotion = async (req, res, next) => {
       });
     }
 
+    // Format start and end dates
     let formattedStartDate = formattedDate(startDate);
     let formattedEndDate = formattedDate(endDate);
 
+    // Create a new promotion record in the database
     const newPromotion = await prisma.promotion.create({
       data: { discount, startDate: formattedStartDate, endDate: formattedEndDate },
     });
 
+    // Retrieve all users from the database
     const users = await prisma.user.findMany();
 
-    const newNotification = await Promise.all(
+    // Create notification records for each user
+    await Promise.all(
       users.map(async (user) => {
         return prisma.notification.create({
           data: {
@@ -57,10 +63,12 @@ createPromotion = async (req, res, next) => {
   }
 };
 
+// Controller for getting all promotions with optional search query
 getAllPromotions = async (req, res, next) => {
   try {
     const { search } = req.query;
 
+    // Retrieve promotions from the database based on the search query
     const promotions = await prisma.promotion.findMany({
       where: search
         ? {
@@ -79,10 +87,12 @@ getAllPromotions = async (req, res, next) => {
   }
 };
 
+// Controller for getting details of a promotion by ID
 getPromotionById = async (req, res, next) => {
   try {
     const promotionId = req.params.id;
 
+    // Validate the promotion ID
     if (!promotionId || isNaN(promotionId)) {
       return res.status(400).json({
         status: false,
@@ -91,10 +101,12 @@ getPromotionById = async (req, res, next) => {
       });
     }
 
+    // Retrieve the promotion details from the database
     const promotion = await prisma.promotion.findUnique({
       where: { id: Number(promotionId) },
     });
 
+    // Handle case when promotion is not found
     if (!promotion) {
       return res.status(404).json({
         status: false,
@@ -113,11 +125,13 @@ getPromotionById = async (req, res, next) => {
   }
 };
 
+// Controller for editing a promotion by ID
 editPromotionById = async (req, res, next) => {
   try {
     const promotionId = req.params.id;
     const { discount, startDate, endDate } = req.body;
 
+    // Validate the promotion ID
     if (!promotionId || isNaN(promotionId)) {
       return res.status(400).json({
         status: false,
@@ -126,10 +140,12 @@ editPromotionById = async (req, res, next) => {
       });
     }
 
+    // Retrieve the existing promotion details from the database
     const promotion = await prisma.promotion.findUnique({
       where: { id: Number(promotionId) },
     });
 
+    // Handle case when promotion is not found
     if (!promotion) {
       return res.status(404).json({
         status: false,
@@ -138,6 +154,7 @@ editPromotionById = async (req, res, next) => {
       });
     }
 
+    // Validate that all required fields are provided
     if (!discount || !startDate || !endDate) {
       return res.status(400).json({
         status: false,
@@ -145,6 +162,7 @@ editPromotionById = async (req, res, next) => {
       });
     }
 
+    // Update the promotion details in the database
     const updatedPromotion = await prisma.promotion.update({
       where: { id: Number(promotionId) },
       data: { discount, startDate, endDate },
@@ -160,10 +178,12 @@ editPromotionById = async (req, res, next) => {
   }
 };
 
+// Controller for deleting a promotion by ID
 deletePromotionById = async (req, res, next) => {
   try {
     const promotionId = req.params.id;
 
+    // Validate the promotion ID
     if (!promotionId || isNaN(promotionId)) {
       return res.status(400).json({
         status: false,
@@ -172,10 +192,12 @@ deletePromotionById = async (req, res, next) => {
       });
     }
 
+    // Retrieve the existing promotion details from the database
     const promotion = await prisma.promotion.findUnique({
       where: { id: Number(promotionId) },
     });
 
+    // Handle case when promotion is not found
     if (!promotion) {
       return res.status(404).json({
         status: false,
@@ -184,6 +206,7 @@ deletePromotionById = async (req, res, next) => {
       });
     }
 
+    // Delete the promotion record from the database
     const deletedPromotion = await prisma.promotion.delete({
       where: { id: Number(promotionId) },
     });
@@ -197,4 +220,5 @@ deletePromotionById = async (req, res, next) => {
     next(err);
   }
 };
+
 module.exports = { createPromotion, getAllPromotions, getPromotionById, editPromotionById, deletePromotionById };

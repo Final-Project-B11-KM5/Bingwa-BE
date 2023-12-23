@@ -4,10 +4,12 @@ const prisma = new PrismaClient();
 const { formattedDate } = require("../utils/formattedDate");
 
 module.exports = {
+  // Controller for handling course enrollment
   courseEnrollment: async (req, res, next) => {
     try {
       const { courseId } = req.params;
 
+      // Validate if courseId is a number
       if (isNaN(courseId)) {
         return res.status(400).json({
           status: false,
@@ -16,12 +18,14 @@ module.exports = {
         });
       }
 
+      // Check if the course exists
       const course = await prisma.course.findUnique({
         where: {
           id: Number(courseId),
         },
       });
 
+      // Return an error if the course is not found
       if (!course) {
         return res.status(404).json({
           status: false,
@@ -30,6 +34,7 @@ module.exports = {
         });
       }
 
+      // Check if the user is already enrolled in the course
       const statusEnrollUser = await prisma.enrollment.findFirst({
         where: {
           courseId: Number(courseId),
@@ -37,6 +42,7 @@ module.exports = {
         },
       });
 
+      // Return an error if the user is already enrolled
       if (statusEnrollUser) {
         return res.status(400).json({
           status: false,
@@ -45,6 +51,7 @@ module.exports = {
         });
       }
 
+      // Return an error if the course is premium
       if (course.isPremium) {
         return res.status(400).json({
           status: false,
@@ -53,6 +60,7 @@ module.exports = {
         });
       }
 
+      // Create a new enrollment record for the user
       let enrollCourse = await prisma.enrollment.create({
         data: {
           userId: Number(req.user.id),
@@ -61,6 +69,7 @@ module.exports = {
         },
       });
 
+      // Retrieve lessons associated with the course
       const lessons = await prisma.lesson.findMany({
         where: {
           chapter: {
@@ -69,6 +78,7 @@ module.exports = {
         },
       });
 
+      // Create tracking records for each lesson to monitor user progress
       const trackingRecords = await Promise.all(
         lessons.map(async (lesson) => {
           return prisma.tracking.create({
@@ -91,6 +101,7 @@ module.exports = {
         })
       );
 
+      // Schedule a reminder notification if user has incomplete lessons after 24 hours
       setTimeout(async () => {
         const allTracking = await prisma.tracking.findMany({
           where: { userId: Number(req.user.id), status: true },
@@ -118,8 +129,10 @@ module.exports = {
     }
   },
 
+  // Controller for retrieving all enrollments of the current user
   getAllEnrollment: async (req, res, next) => {
     try {
+      // Retrieve all enrollments for the current user, including associated course details
       const enrollments = await prisma.enrollment.findMany({
         where: { userId: req.user.id },
         include: {
@@ -166,10 +179,12 @@ module.exports = {
     }
   },
 
+  // Controller for retrieving details of a specific enrollment
   getDetailEnrollment: async (req, res, next) => {
     try {
       const enrollmentId = req.params.id;
 
+      // Validate if enrollmentId is a number
       if (isNaN(enrollmentId)) {
         return res.status(400).json({
           status: false,
@@ -178,6 +193,7 @@ module.exports = {
         });
       }
 
+      // Retrieve details of the specified enrollment, including associated course details
       let enrollment = await prisma.enrollment.findUnique({
         where: { id: Number(enrollmentId) },
         include: {
@@ -215,6 +231,7 @@ module.exports = {
         },
       });
 
+      // Return an error if the enrollment is not found
       if (!enrollment) {
         return res.status(404).json({
           status: false,
