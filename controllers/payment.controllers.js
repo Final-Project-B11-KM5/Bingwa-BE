@@ -27,8 +27,7 @@ module.exports = {
     try {
       const { idCourse } = req.params;
       const { methodPayment, createdAt, updatedAt } = req.body;
-      let PPN = 11 / 100;
-      let amount;
+      const PPN = 11 / 100;
 
       // Validate that createdAt and updatedAt are not provided during payment creation
       if (createdAt !== undefined || updatedAt !== undefined) {
@@ -40,7 +39,7 @@ module.exports = {
       }
 
       // Find the course for which payment is being created
-      let course = await prisma.course.findFirst({
+      const course = await prisma.course.findFirst({
         where: {
           id: Number(idCourse),
         },
@@ -83,7 +82,7 @@ module.exports = {
       if (statusEnrollUser) {
         return res.status(400).json({
           status: false,
-          message: `User Alrady Enroll this Course`,
+          message: `User Already Enrolled in this Course`,
           data: null,
         });
       }
@@ -92,92 +91,88 @@ module.exports = {
       const modifiedName = course.category.categoryName.replace(/\s+/g, "-");
 
       // Calculate the payment amount with PPN
-      amount = course.price * PPN + course.price;
+      const amount = course.price + course.price * PPN;
 
       // Validate the methodPayment field
-      if (!methodPayment || typeof methodPayment != "string") {
+      if (!methodPayment || typeof methodPayment !== "string") {
         return res.status(400).json({
           status: false,
           message: `Bad Request for method payment`,
           data: null,
         });
       }
-      try {
-        // Create a new payment record in the database
-        let newPayment = await prisma.payment.create({
-          data: {
-            amount: parseInt(amount),
+
+      // Create a new payment record in the database
+      const newPayment = await prisma.payment.create({
+        data: {
+          amount: parseInt(amount),
+          courseId: Number(idCourse),
+          userId: Number(req.user.id),
+          status: "Paid",
+          methodPayment,
+          paymentCode: `${modifiedName}-${generatedPaymentCode()}`,
+          createdAt: formattedDate(new Date()),
+          updatedAt: formattedDate(new Date()),
+        },
+      });
+
+      // Send a success email notification to the user
+      const html = await nodemailer.getHtml("transaction-succes.ejs", {
+        course: course.courseName,
+      });
+      await nodemailer.sendEmail(req.user.email, "Email Transaction", html);
+
+      // Update the enrollment data when payment is successful
+      await prisma.enrollment.create({
+        data: {
+          userId: Number(req.user.id),
+          courseId: Number(idCourse),
+          createdAt: formattedDate(new Date()),
+        },
+      });
+
+      // Create tracking records for each lesson in the course
+      const lessons = await prisma.lesson.findMany({
+        where: {
+          chapter: {
             courseId: Number(idCourse),
-            userId: Number(req.user.id),
-            status: "paid",
-            methodPayment,
-            paymentCode: `${modifiedName}-${generatedPaymentCode()}`,
-            createdAt: formattedDate(new Date()),
-            updatedAt: formattedDate(new Date()),
           },
-        });
+        },
+      });
 
-        // Send a success email notification to the user
-        const html = await nodemailer.getHtml("transaction-succes.ejs", {
-          course: course.courseName,
-        });
-        await nodemailer.sendEmail(req.user.email, "Email Transaction", html);
-
-        // Update the enrollment data when payment is successful
-        await prisma.enrollment.create({
-          data: {
-            userId: Number(req.user.id),
-            courseId: Number(idCourse),
-            createdAt: formattedDate(new Date()),
-          },
-        });
-
-        // Create tracking records for each lesson in the course
-        const lessons = await prisma.lesson.findMany({
-          where: {
-            chapter: {
+      await Promise.all(
+        lessons.map(async (lesson) => {
+          return prisma.tracking.create({
+            data: {
+              userId: Number(req.user.id),
               courseId: Number(idCourse),
+              lessonId: lesson.id,
+              status: false,
+              createdAt: formattedDate(new Date()),
+              updatedAt: formattedDate(new Date()),
             },
-          },
-        });
-
-        await Promise.all(
-          lessons.map(async (lesson) => {
-            return prisma.tracking.create({
-              data: {
-                userId: Number(req.user.id),
-                courseId: Number(idCourse),
-                lessonId: lesson.id,
-                status: false,
-                createdAt: formattedDate(new Date()),
-                updatedAt: formattedDate(new Date()),
-              },
-              include: {
-                lesson: {
-                  select: {
-                    lessonName: true,
-                  },
+            include: {
+              lesson: {
+                select: {
+                  lessonName: true,
                 },
               },
-            });
-          })
-        );
+            },
+          });
+        })
+      );
 
-        res.status(201).json({
-          status: true,
-          message: "succes to Create Payment",
-          data: { newPayment },
-        });
-      } catch (err) {
-        res.status(400).json({
-          status: false,
-          message: "Error When Create Payment,make sure request is valid type",
-          error: err.message,
-        });
-      }
-      // end create payment
+      res.status(201).json({
+        status: true,
+        message: "Success to Create Payment",
+        data: { newPayment },
+      });
     } catch (err) {
-      next(err);
+      res.status(400).json({
+        status: false,
+        message: "Error When Create Payment, make sure the request is of valid type",
+        error: err.message,
+      });
     }
   },
 
@@ -430,6 +425,7 @@ module.exports = {
       let newPayment = await prisma.payment.create({
         data: {
           amount: parseInt(totalPrice),
+          status: "Paid",
           methodPayment,
           paymentCode: `${modifiedName}-${generatedPaymentCode()}`,
           courseId: Number(courseId),
