@@ -28,7 +28,7 @@ pasport.use(
                 profilePicture: profile.photos[0].value,
               },
             },
-          },    
+          },
         });
         done(null, user);
       } catch (err) {

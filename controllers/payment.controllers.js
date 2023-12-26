@@ -168,11 +168,7 @@ module.exports = {
         data: { newPayment },
       });
     } catch (err) {
-      res.status(400).json({
-        status: false,
-        message: "Error When Create Payment, make sure the request is of valid type",
-        error: err.message,
-      });
+      next(err);
     }
   },
 
