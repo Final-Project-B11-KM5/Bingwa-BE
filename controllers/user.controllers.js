@@ -43,6 +43,14 @@ module.exports = {
       });
 
       if (existingUser) {
+        if (existingUser.googleId) {
+          return res.status(409).json({
+            status: false,
+            message: "User already registered using Google OAuth. Please use Google OAuth to log in.",
+            data: null,
+          });
+        }
+
         return res.status(409).json({
           status: false,
           message: "Email or phone number already exists",
@@ -147,8 +155,16 @@ module.exports = {
         });
       }
 
+      if (!user.password && user.googleId) {
+        return res.status(401).json({
+          status: false,
+          message: "Authentication failed. Please use Google OAuth to log in.",
+          data: null,
+        });
+      }
+
       // Check if the provided password is correct
-      let isPasswordCorrect = await bcrypt.compare(password, user.password);
+      let isPasswordCorrect = bcrypt.compare(password, user.password);
       if (!isPasswordCorrect) {
         return res.status(401).json({
           status: false,
