@@ -18,6 +18,7 @@ function generateFilter(props) {
   });
 }
 
+
 module.exports = {
   image: generateFilter({
     allowedMimeTypes: ["image/png", "image/jpeg"],
