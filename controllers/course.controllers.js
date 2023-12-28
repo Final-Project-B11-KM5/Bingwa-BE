@@ -215,6 +215,11 @@ module.exports = {
             },
           },
           enrollment: {
+            where:{
+              review: {
+                OR: [{ userComment: null }, { userComment: { not: null } }],
+              },
+            },
             select: {
               review: {
                 select: {
@@ -306,6 +311,12 @@ module.exports = {
         if (filter.includes("promo")) {
           coursesQuery.where.promotionId = { not: null };
         }
+        if (filter.includes("premium")) {
+          coursesQuery.where.isPremium = true;
+        }
+        if (filter.includes("free")) {
+          coursesQuery.where.isPremium = false;
+        }
       }
 
       // Category filter
@@ -346,6 +357,7 @@ module.exports = {
           duration: true,
           level: true,
           price: true,
+          isPremium: true,
           category: {
             select: {
               id: true,
@@ -409,7 +421,7 @@ module.exports = {
       // Modify object property count to modul
       course = course.map((val) => {
         val.enrollment = val.enrollment[0];
-        val["modul"] = val._count.chapter;
+        val.modul = val._count.chapter;
         val.statusEnrol = true;
         delete val["_count"];
         return val;
@@ -417,7 +429,7 @@ module.exports = {
 
       // Modify object property count to modul for not enrolled courses
       courseNotEnrol = courseNotEnrol.map((val) => {
-        val["modul"] = val._count.chapter;
+        val.modul = val._count.chapter;
         val.statusEnrol = false;
         delete val["_count"];
         return val;
@@ -487,6 +499,7 @@ module.exports = {
           chapter: {
             select: {
               name: true,
+              duration:true,
               lesson: {
                 include: {
                   tracking: {
@@ -624,6 +637,11 @@ module.exports = {
             },
           },
           enrollment: {
+            where: {
+              review: {
+                OR: [{ userComment: null }, { userComment: { not: null } }],
+              },
+            },
             select: {
               review: {
                 select: {
