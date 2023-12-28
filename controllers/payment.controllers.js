@@ -8,7 +8,12 @@ const nodemailer = require("../utils/nodemailer");
 const { formattedDate } = require("../utils/formattedDate");
 const { generatedPaymentCode } = require("../utils/codeGenerator");
 
-const { PAYMENT_DEV_CLIENT_KEY, PAYMENT_DEV_SERVER_KEY, PAYMENT_PROD_CLIENT_KEY, PAYMENT_PROD_SERVER_KEY } = process.env;
+const {
+  PAYMENT_DEV_CLIENT_KEY,
+  PAYMENT_DEV_SERVER_KEY,
+  PAYMENT_PROD_CLIENT_KEY,
+  PAYMENT_PROD_SERVER_KEY,
+} = process.env;
 
 // Setting the environment (true for production, false for development)
 const isProduction = false;
@@ -33,7 +38,8 @@ module.exports = {
       if (createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
-          message: "createdAt or updateAt cannot be provided during payment creation",
+          message:
+            "createdAt or updateAt cannot be provided during payment creation",
           data: null,
         });
       }
@@ -91,7 +97,15 @@ module.exports = {
       const modifiedName = course.category.categoryName.replace(/\s+/g, "-");
 
       // Calculate the payment amount with PPN
-      const amount = course.price + course.price * PPN;
+      let amount = course.price + course.price * PPN;
+
+      // check is discount
+      if (course.promotionId) {
+        let promotion = await prisma.promotion.findFirst({
+          where: { id: course.promotionId },
+        });
+        amount = amount - (amount * promotion.discount) / 100;
+      }
 
       // Validate the methodPayment field
       if (!methodPayment || typeof methodPayment !== "string") {
@@ -334,13 +348,24 @@ module.exports = {
   createPaymentMidtrans: async (req, res, next) => {
     try {
       const courseId = req.params.courseId;
-      const { methodPayment, cardNumber, cvv, expiryDate, bankName, store, message, createdAt, updatedAt } = req.body;
+      const {
+        methodPayment,
+        cardNumber,
+        cvv,
+        expiryDate,
+        bankName,
+        store,
+        message,
+        createdAt,
+        updatedAt,
+      } = req.body;
 
       // Validate that createdAt and updatedAt are not provided during payment creation
       if (createdAt !== undefined || updatedAt !== undefined) {
         return res.status(400).json({
           status: false,
-          message: "createdAt or updateAt cannot be provided during payment creation",
+          message:
+            "createdAt or updateAt cannot be provided during payment creation",
           data: null,
         });
       }
@@ -350,10 +375,14 @@ module.exports = {
       let year = expiryDate.slice(3);
 
       // Set the Midtrans API URL based on the environment
-      const apiUrl = isProduction ? `https://api.midtrans.com/v2/token?client_key=${PAYMENT_PROD_CLIENT_KEY}` : `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_DEV_CLIENT_KEY}`;
+      const apiUrl = isProduction
+        ? `https://api.midtrans.com/v2/token?client_key=${PAYMENT_PROD_CLIENT_KEY}`
+        : `https://api.sandbox.midtrans.com/v2/token?client_key=${PAYMENT_DEV_CLIENT_KEY}`;
 
       // Get card token from Midtrans API
-      const response = await axios.get(`${apiUrl}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`);
+      const response = await axios.get(
+        `${apiUrl}&card_number=${cardNumber}&card_cvv=${cvv}&card_exp_month=${month}&card_exp_year=${`20${year}`}`
+      );
 
       const token_id = response.data.token_id;
 
@@ -446,10 +475,18 @@ module.exports = {
 
       // Set payment type based on the methodPayment
       if (methodPayment === "Credit Card") {
-        if (!cardNumber || !cvv || !expiryDate || bankName !== undefined || store !== undefined || message !== undefined) {
+        if (
+          !cardNumber ||
+          !cvv ||
+          !expiryDate ||
+          bankName !== undefined ||
+          store !== undefined ||
+          message !== undefined
+        ) {
           return res.status(400).json({
             status: false,
-            message: "For Credit Card payments, please provide only card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            message:
+              "For Credit Card payments, please provide only card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
             data: null,
           });
         }
@@ -462,10 +499,18 @@ module.exports = {
       }
 
       if (methodPayment === "Bank Transfer") {
-        if (!bankName || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+        if (
+          !bankName ||
+          cardNumber !== undefined ||
+          cvv !== undefined ||
+          expiryDate !== undefined ||
+          store !== undefined ||
+          message !== undefined
+        ) {
           return res.status(400).json({
             status: false,
-            message: "For this payment method, please provide only the required fields. Unnecessary fields are not applicable.",
+            message:
+              "For this payment method, please provide only the required fields. Unnecessary fields are not applicable.",
             data: null,
           });
         }
@@ -477,10 +522,18 @@ module.exports = {
       }
 
       if (methodPayment === "Mandiri Bill") {
-        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+        if (
+          bankName !== undefined ||
+          cardNumber !== undefined ||
+          cvv !== undefined ||
+          expiryDate !== undefined ||
+          store !== undefined ||
+          message !== undefined
+        ) {
           return res.status(400).json({
             status: false,
-            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            message:
+              "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
             data: null,
           });
         }
@@ -493,10 +546,18 @@ module.exports = {
       }
 
       if (methodPayment === "Permata") {
-        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+        if (
+          bankName !== undefined ||
+          cardNumber !== undefined ||
+          cvv !== undefined ||
+          expiryDate !== undefined ||
+          store !== undefined ||
+          message !== undefined
+        ) {
           return res.status(400).json({
             status: false,
-            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            message:
+              "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
             data: null,
           });
         }
@@ -505,10 +566,18 @@ module.exports = {
       }
 
       if (methodPayment === "Gopay") {
-        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+        if (
+          bankName !== undefined ||
+          cardNumber !== undefined ||
+          cvv !== undefined ||
+          expiryDate !== undefined ||
+          store !== undefined ||
+          message !== undefined
+        ) {
           return res.status(400).json({
             status: false,
-            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            message:
+              "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
             data: null,
           });
         }
@@ -521,10 +590,17 @@ module.exports = {
       }
 
       if (methodPayment === "Counter") {
-        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined) {
+        if (
+          bankName !== undefined ||
+          cardNumber !== undefined ||
+          cvv !== undefined ||
+          expiryDate !== undefined ||
+          store !== undefined
+        ) {
           return res.status(400).json({
             status: false,
-            message: "Please provide only the required card details (cardNumber, cvv, expiryDate) for this payment method. Other fields are not applicable.",
+            message:
+              "Please provide only the required card details (cardNumber, cvv, expiryDate) for this payment method. Other fields are not applicable.",
             data: null,
           });
         }
@@ -549,10 +625,18 @@ module.exports = {
       }
 
       if (methodPayment === "Cardless Credit") {
-        if (bankName !== undefined || cardNumber !== undefined || cvv !== undefined || expiryDate !== undefined || store !== undefined || message !== undefined) {
+        if (
+          bankName !== undefined ||
+          cardNumber !== undefined ||
+          cvv !== undefined ||
+          expiryDate !== undefined ||
+          store !== undefined ||
+          message !== undefined
+        ) {
           return res.status(400).json({
             status: false,
-            message: "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
+            message:
+              "For this payment method, please provide only the required card details (cardNumber, cvv, expiryDate). Other fields are not applicable.",
             data: null,
           });
         }
