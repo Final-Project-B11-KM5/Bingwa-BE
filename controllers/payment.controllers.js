@@ -490,7 +490,7 @@ module.exports = {
             data: null,
           });
         }
-
+        
         parameter.payment_type = "credit_card";
         parameter.credit_card = {
           token_id: token_id,
