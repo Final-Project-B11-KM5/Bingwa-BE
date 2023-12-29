@@ -356,6 +356,7 @@ module.exports = {
           averageRating: true,
           duration: true,
           level: true,
+          courseImg:true,
           price: true,
           isPremium: true,
           category: {
@@ -391,6 +392,7 @@ module.exports = {
           courseName: true,
           mentor: true,
           averageRating: true,
+          courseImg:true,
           duration: true,
           level: true,
           price: true,
