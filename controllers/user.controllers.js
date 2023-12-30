@@ -138,7 +138,6 @@ module.exports = {
   login: async (req, res, next) => {
     try {
       let { emailOrPhoneNumber, password } = req.body;
-
       // Find user record based on email or phone number
       const user = await prisma.user.findFirst({
         where: {
@@ -164,7 +163,7 @@ module.exports = {
       }
 
       // Check if the provided password is correct
-      let isPasswordCorrect = bcrypt.compare(password, user.password);
+      let isPasswordCorrect = await bcrypt.compare(password, user.password);
       if (!isPasswordCorrect) {
         return res.status(401).json({
           status: false,
