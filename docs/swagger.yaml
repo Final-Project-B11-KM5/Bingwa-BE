@@ -619,6 +619,22 @@ paths:
                         properties:
                           newCategory:
                             $ref: "#/components/schemas/CategoryModel"
+        "400":
+          description: Bad Request field missing 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Please provide categoryName, and categoryImg"
+                  data :
+                    type: object
+                    example: null
   /categories/{categoryId}:
     put:
       tags:
@@ -652,6 +668,22 @@ paths:
                         properties:
                           editedCategory:
                             $ref: "#/components/schemas/CategoryModel"
+        "400":
+          description: Bad Request field missing 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Please provide categoryName, and categoryImg"
+                  data :
+                    type: object
+                    example: null
     delete:
       tags:
         - Categories
@@ -682,6 +714,22 @@ paths:
                         properties:
                           deletedCategory:
                             $ref: "#/components/schemas/CategoryModel"
+        "404":
+          description: Category Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Category Not Found"
+                  data :
+                    type: object
+                    example: null
   /courses:
     get:
       tags:
@@ -798,7 +846,7 @@ paths:
                       data:
                         $ref: "#/components/schemas/CourseModel"
         "400":
-          description: free class price must be 0
+          description: bad Request when Create Course
           content:
             application/json:
               schema:
@@ -886,7 +934,6 @@ paths:
                                     category:
                                       allOf:
                                         - $ref: "#/components/schemas/CategoryModel"
-
   /courses/{courseId}/me:
     get:
       tags:
@@ -935,7 +982,6 @@ paths:
                                   category:
                                     allOf:
                                       - $ref: "#/components/schemas/CategoryModel"
-
         "400":
           description: You Not Enroll this course
           content:
@@ -1204,6 +1250,20 @@ paths:
                         properties:
                           newChapter:
                             $ref: "#/components/schemas/ChapterModel"
+        "400":
+          description: Bad Request Some Field Missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Please provide name, courseId, and duration"
+                               
   /chapters/{chapterId}:
     get:
       tags:
@@ -1296,6 +1356,19 @@ paths:
                         properties:
                           updatedChapter:
                             $ref: "#/components/schemas/ChapterModel"
+        "400":
+          description: Bad Request Some Field Missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Please provide name, courseId, and duration"
         "404":
           description: Chapter Not Found
           content:
@@ -1432,6 +1505,33 @@ paths:
                         properties:
                           newLesson:
                             $ref: "#/components/schemas/LessonModel"
+        "400":
+          description: Bad Request Some Field Missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Please provide lessonName, videoURL, and chapterId"
+        "404":
+          description: Request Field Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Chapter not found"
+                    
   /lessons/filter:
     get:
       tags:
@@ -1658,7 +1758,7 @@ paths:
                                     allOf:
                                       - $ref: "#/components/schemas/LessonModel"
         "404":
-          description: Lesson Not Found
+          description: Request Field Not Found
           content:
             application/json:
               schema:
@@ -1669,7 +1769,7 @@ paths:
                     example: false
                   message:
                     type: string
-                    example: "failed"
+                    example: "Chapter not found"
   /enrollments:
     get:
       tags:
@@ -1951,6 +2051,19 @@ paths:
                         properties:
                           newPromotion:
                             $ref: "#/components/schemas/PromotionModel"
+        "400":
+          description: Bad Request Some Field Missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "All fields must be filled"
   /promotions/{promotionId}:
     get:
       tags:
@@ -2189,6 +2302,19 @@ paths:
                                             fullName:
                                               type: string
                                               example: "Budi Cahyono"
+        "400":
+          description: Bad Request Some Field Missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "All fields must be filled"
   /notifications/markAsRead:
     put:
       tags:
