@@ -383,7 +383,7 @@ module.exports = {
         await prisma.notification.create({
           data: {
             title: "Notifikasi",
-            message: "Password berhasil diubah!",
+            message:"Password successfully changed!",
             userId: updateUser.id,
             createdAt: formattedDate(new Date()),
           },
@@ -507,12 +507,17 @@ module.exports = {
   googleOauth2: (req, res) => {
     // Generate a JWT token for the authenticated user
     let token = jwt.sign({ id: req.user.id }, JWT_SECRET_KEY);
+    // Set the token as a cookie
+    res.cookie('token', token, { httpOnly: true });
 
-    return res.status(200).json({
-      status: true,
-      message: "OK",
-      err: null,
-      data: { user: req.user, token },
-    });
+    // Redirect to a desired URL
+    res.redirect('/');
+
+    // return res.status(200).json({
+    //   status: true,
+    //   message: "OK",
+    //   err: null,
+    //   data: { user: req.user, token },
+    // });
   },
 };
