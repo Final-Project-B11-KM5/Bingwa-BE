@@ -508,7 +508,7 @@ module.exports = {
     // Generate a JWT token for the authenticated user
     let token = jwt.sign({ id: req.user.id }, JWT_SECRET_KEY);
     // Set the token as a cookie
-    res.cookie('authToken', token, { httpOnly: true });
+    res.cookie('authToken', token, { httpOnly: false });
 
     // Redirect to a desired URL
     res.redirect('http://localhost:3000');
