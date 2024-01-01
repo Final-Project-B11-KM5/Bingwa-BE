@@ -512,12 +512,5 @@ module.exports = {
 
     // Redirect to a desired URL
     res.redirect('/');
-
-    // return res.status(200).json({
-    //   status: true,
-    //   message: "OK",
-    //   err: null,
-    //   data: { user: req.user, token },
-    // });
   },
 };
