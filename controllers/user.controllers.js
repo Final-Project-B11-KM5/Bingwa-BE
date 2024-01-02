@@ -528,10 +528,8 @@ module.exports = {
   googleOauth2: (req, res) => {
     // Generate a JWT token for the authenticated user
     let token = jwt.sign({ id: req.user.id }, JWT_SECRET_KEY);
-    // Set the token as a cookie
-    // res.cookie("authToken", token, { httpOnly: false, secure: true });
-
+    
     // Redirect to a desired URL
-    res.redirect(`http://localhost:3000?authToken=${token}`);
+    res.redirect(`https://final-project-binar-seven.vercel.app?authToken=${token}`);
   },
 };
