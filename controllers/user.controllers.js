@@ -532,6 +532,6 @@ module.exports = {
     res.cookie("authToken", token, { httpOnly: false, secure: true });
 
     // Redirect to a desired URL
-    res.redirect("http://localhost:3000");
+    res.redirect(`http://localhost:3000?authToken=${token}`);
   },
 };
