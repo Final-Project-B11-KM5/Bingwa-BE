@@ -14,7 +14,8 @@ module.exports = {
   register: async (req, res, next) => {
     try {
       let { fullName, email, phoneNumber, password } = req.body;
-      const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+      const passwordValidator =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
       const emailValidator = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       // Validate required fields
@@ -30,7 +31,8 @@ module.exports = {
       if (fullName.length > 50) {
         return res.status(400).json({
           status: false,
-          message: "Invalid full name length. It must be at most 50 characters.",
+          message:
+            "Invalid full name length. It must be at most 50 characters.",
           data: null,
         });
       }
@@ -46,7 +48,8 @@ module.exports = {
         if (existingUser.googleId) {
           return res.status(409).json({
             status: false,
-            message: "User already registered using Google OAuth. Please use Google OAuth to log in.",
+            message:
+              "User already registered using Google OAuth. Please use Google OAuth to log in.",
             data: null,
           });
         }
@@ -71,7 +74,8 @@ module.exports = {
       if (!/^\d+$/.test(phoneNumber)) {
         return res.status(400).json({
           status: false,
-          message: "Invalid phone number format. It must contain only numeric characters.",
+          message:
+            "Invalid phone number format. It must contain only numeric characters.",
           data: null,
         });
       }
@@ -80,7 +84,8 @@ module.exports = {
       if (phoneNumber.length < 10 || phoneNumber.length > 12) {
         return res.status(400).json({
           status: false,
-          message: "Invalid phone number length. It must be between 10 and 12 characters.",
+          message:
+            "Invalid phone number length. It must be between 10 and 12 characters.",
           data: null,
         });
       }
@@ -89,7 +94,8 @@ module.exports = {
       if (!passwordValidator.test(password)) {
         return res.status(400).json({
           status: false,
-          message: "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be between 8 and 12 characters long.",
+          message:
+            "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be between 8 and 12 characters long.",
           data: null,
         });
       }
@@ -141,7 +147,10 @@ module.exports = {
       // Find user record based on email or phone number
       const user = await prisma.user.findFirst({
         where: {
-          OR: [{ email: emailOrPhoneNumber }, { userProfile: { phoneNumber: emailOrPhoneNumber } }],
+          OR: [
+            { email: emailOrPhoneNumber },
+            { userProfile: { phoneNumber: emailOrPhoneNumber } },
+          ],
         },
       });
 
@@ -301,7 +310,9 @@ module.exports = {
       }
 
       // Generate a JWT token for password reset with a 1-hour expiration
-      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY, { expiresIn: "1h" });
+      let token = jwt.sign({ email: user.email }, JWT_SECRET_KEY, {
+        expiresIn: "1h",
+      });
 
       // Send an email with the password reset link
       const html = await nodemailer.getHtml("email-password-reset.ejs", {
@@ -327,12 +338,14 @@ module.exports = {
       let { password, passwordConfirmation } = req.body;
 
       // Validate the new password format
-      const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+      const passwordValidator =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
 
       if (!passwordValidator.test(password)) {
         return res.status(400).json({
           status: false,
-          message: "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be between 8 and 12 characters long.",
+          message:
+            "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be between 8 and 12 characters long.",
           data: null,
         });
       }
@@ -341,7 +354,8 @@ module.exports = {
       if (password !== passwordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please ensure that the password and password confirmation match!",
+          message:
+            "Please ensure that the password and password confirmation match!",
           data: null,
         });
       }
@@ -383,7 +397,7 @@ module.exports = {
         await prisma.notification.create({
           data: {
             title: "Notifikasi",
-            message:"Password successfully changed!",
+            message: "Password successfully changed!",
             userId: updateUser.id,
             createdAt: formattedDate(new Date()),
           },
@@ -439,13 +453,17 @@ module.exports = {
       if (!oldPassword || !newPassword || !newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please provide oldPassword, newPassword, and newPasswordConfirmation",
+          message:
+            "Please provide oldPassword, newPassword, and newPasswordConfirmation",
           data: null,
         });
       }
 
       // Check if the old password provided matches the user's current password
-      let isOldPasswordCorrect = await bcrypt.compare(oldPassword, req.user.password);
+      let isOldPasswordCorrect = await bcrypt.compare(
+        oldPassword,
+        req.user.password
+      );
       if (!isOldPasswordCorrect) {
         return res.status(401).json({
           status: false,
@@ -455,12 +473,14 @@ module.exports = {
       }
 
       // Validate the format of the new password using a regular expression
-      const passwordValidator = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+      const passwordValidator =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
 
       if (!passwordValidator.test(newPassword)) {
         return res.status(400).json({
           status: false,
-          message: "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be between 8 and 12 characters long.",
+          message:
+            "Invalid password format. It must contain at least 1 lowercase, 1 uppercase, 1 digit number, 1 symbol, and be between 8 and 12 characters long.",
           data: null,
         });
       }
@@ -469,7 +489,8 @@ module.exports = {
       if (newPassword !== newPasswordConfirmation) {
         return res.status(400).json({
           status: false,
-          message: "Please ensure that the new password and confirmation match!",
+          message:
+            "Please ensure that the new password and confirmation match!",
           data: null,
         });
       }
@@ -508,9 +529,9 @@ module.exports = {
     // Generate a JWT token for the authenticated user
     let token = jwt.sign({ id: req.user.id }, JWT_SECRET_KEY);
     // Set the token as a cookie
-    res.cookie('authToken', token, { httpOnly: false });
+    res.cookie("authToken", token, { httpOnly: false, secure: true });
 
     // Redirect to a desired URL
-    res.redirect('http://localhost:3000');
+    res.redirect("http://localhost:3000");
   },
 };
