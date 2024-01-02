@@ -16,6 +16,7 @@ MOOC (Massive Open Online Course) app is a versatile online learning platform th
 - Arfin Dwi Octavianto
 - Moh Hafid Nur Firmansyah
 - Shera Alice Ayutri
+- Muhammad Afif Mu'tashim
 
 ## Installation
 
