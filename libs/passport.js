@@ -4,8 +4,7 @@ const { PrismaClient } = require("@prisma/client");
 const passport = require("passport");
 const prisma = new PrismaClient();
 
-const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL } =
-  process.env;
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL } = process.env;
 
 pasport.use(
   new GoogleStrategy(
