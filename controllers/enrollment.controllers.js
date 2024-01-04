@@ -101,6 +101,15 @@ module.exports = {
         })
       );
 
+      await prisma.notification.create({
+        data: {
+          title: "Notification",
+          message: "You have successfully enrolled in the course",
+          userId: Number(req.user.id),
+          createdAt: formattedDate(new Date()),
+        },
+      });
+
       // Schedule a reminder notification if user has incomplete lessons after 24 hours
       setTimeout(async () => {
         const allTracking = await prisma.tracking.findMany({
